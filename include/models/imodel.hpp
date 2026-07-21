@@ -1,38 +1,27 @@
-// Базовый класс для работы с моделью
+#pragma once
+
+#include <nlohmann/json.hpp>
 #include <string>
 
+using json = nlohmann::json;
 
-class IModel {
-    public:
+class IModel
+{
+public:
 
-        std::string id; // Уникальный идентификатор модели
+    virtual ~IModel() = default;
 
-        std::string name; // Название модели
+    virtual std::string id() const = 0;
 
-        std::string version; // Версия модели
+    virtual std::string name() const = 0;
 
-        std::string author; // Автор модели
+    virtual std::string version() const = 0;
 
-        std::string description; // Описание модели
+    virtual bool ready() const = 0;
 
-        std::string input_type; // Тип входных данных модели
+    virtual void load() = 0;
 
-        size_t input_size; // Размер входных данных модели
+    virtual void unload() = 0;
 
-        std::string output_type; // Тип выходных данных модели
-
-    public:
-        // Конструктор
-        IModel(const std::string& modelName) : name(modelName) {}
-
-        // Виртуальный деструктор
-        virtual ~IModel() = default;
-
-        // Метод для получения имени модели
-        std::string getName() const {
-            return name;
-        }
-
-        // Чисто виртуальная функция для предсказания на основе входных данных
-        virtual void predict() = 0;
+    virtual json infer(const json& input) = 0;
 };

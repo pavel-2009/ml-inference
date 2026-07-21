@@ -3,8 +3,23 @@
 
 
 class IModel {
-    private:
-        std::string name; // Имя модели
+    public:
+
+        std::string id; // Уникальный идентификатор модели
+
+        std::string name; // Название модели
+
+        std::string version; // Версия модели
+
+        std::string author; // Автор модели
+
+        std::string description; // Описание модели
+
+        std::string input_type; // Тип входных данных модели
+
+        size_t input_size; // Размер входных данных модели
+
+        std::string output_type; // Тип выходных данных модели
 
     public:
         // Конструктор

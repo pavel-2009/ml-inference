@@ -1,0 +1,9 @@
+{
+    "id": "sort",
+    "type": "sort",
+    "name": "Sort Model",
+    "version": "1.0",
+    "author": "Pavel",
+    "description": "Sort integer array",
+    "enabled": true
+}

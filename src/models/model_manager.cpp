@@ -3,9 +3,12 @@
 #include "models/model_factory.hpp"
 
 #include <iostream>
+#include <mutex>
 
 
 std::shared_ptr<BaseModel> ModelManager::get(const std::string& id) {
+
+    std::unique_lock lock(mutex_);
     
     if (models_.contains(id)) {
         auto model = models_.find(id);
@@ -18,13 +21,19 @@ std::shared_ptr<BaseModel> ModelManager::get(const std::string& id) {
 }
 
 void ModelManager::add(std::string& id, std::shared_ptr<BaseModel> model) {
+    std::unique_lock lock(mutex_);
+
     models_.emplace(id, std::move(model));
 }
 
 void ModelManager::remove(const std::string& id) {
+    std::unique_lock lock(mutex_);
+
     models_.erase(id);
 }
 
 void ModelManager::clear() {
+    std::unique_lock lock(mutex_);
+
     models_.clear();
 }

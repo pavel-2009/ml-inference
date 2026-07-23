@@ -14,7 +14,7 @@ class ModelManager {
     public:
         std::shared_ptr<BaseModel> get(const std::string& id);
         
-        void add(std::shared_ptr<BaseModel> model);
+        void add(std::string& id, std::shared_ptr<BaseModel> model);
 
         void remove(const std::string& id);
 

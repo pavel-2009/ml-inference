@@ -17,4 +17,6 @@ std::shared_ptr<BaseModel> ModelManager::get(const std::string& id) {
     
 }
 
-void
+void ModelManager::add(std::string& id, std::shared_ptr<BaseModel> model) {
+    models_.emplace(id, std::move(model));
+}

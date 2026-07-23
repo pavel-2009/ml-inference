@@ -20,3 +20,11 @@ std::shared_ptr<BaseModel> ModelManager::get(const std::string& id) {
 void ModelManager::add(std::string& id, std::shared_ptr<BaseModel> model) {
     models_.emplace(id, std::move(model));
 }
+
+void ModelManager::remove(const std::string& id) {
+    models_.erase(id);
+}
+
+void ModelManager::clear() {
+    models_.clear();
+}

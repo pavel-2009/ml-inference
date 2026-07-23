@@ -1,12 +1,12 @@
 #include "base_model.hpp"
 
-#include <mutex>
+#include <shared_mutex>
 
 
 class ModelManager {
     private:
         std::unordered_map<std::string, std::shared_ptr<BaseModel>> models_;
-        mutable std::mutex mutex_;
+        mutable std::shared_mutex mutex_;
 
     private:
         bool contains(const std::string& id) const;

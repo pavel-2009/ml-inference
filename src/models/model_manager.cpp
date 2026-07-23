@@ -8,11 +8,13 @@
 std::shared_ptr<BaseModel> ModelManager::get(const std::string& id) {
     
     if (models_.contains(id)) {
-        auto model = models_.at(id);
+        auto model = models_.find(id);
 
-        return model;
+        return model->second;
     } else {
-        throw std::run
+        throw std::runtime_error("Model not found");
     }
     
 }
+
+void

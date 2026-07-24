@@ -5,6 +5,7 @@
 #include <atomic>
 #include <memory>
 #include "task_queue.hpp"
+#include "base_task.hpp"
 
 
 class ThreadPool {
@@ -26,6 +27,8 @@ class ThreadPool {
 
         ThreadPool(ThreadPool&&) = delete;
         ThreadPool& operator=(ThreadPool&&) = delete;
+
+        void enqueue(std::unique_ptr<BaseTask> task);
 
         size_t size() const;
 };

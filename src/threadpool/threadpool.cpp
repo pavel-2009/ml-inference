@@ -1,4 +1,5 @@
 #include "threadpool.hpp"
+#include "base_task.hpp"
 
 #include <iostream>
 
@@ -44,6 +45,10 @@ ThreadPool::~ThreadPool() {
             worker.join();
         }
     }
+}
+
+void ThreadPool::enqueue(std::unique_ptr<BaseTask> task) {
+    tasks_.push(std::move(task));
 }
 
 size_t ThreadPool::size() const {

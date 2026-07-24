@@ -8,7 +8,7 @@
 
 std::shared_ptr<BaseModel> ModelManager::get(const std::string& id) {
 
-    std::unique_lock lock(mutex_);
+    std::shared_lock lock(mutex_);
     
     if (models_.contains(id)) {
         auto model = models_.find(id);

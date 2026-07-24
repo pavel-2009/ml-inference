@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base_model.hpp"
+#include "imodel.hpp"
 #include "model_info.hpp"
 
 #include <memory>
@@ -15,5 +15,5 @@ enum class ModelType
 
 class ModelFactory {
 public:
-    static std::unique_ptr<BaseModel> createModel(ModelType type, ModelInfo info);
+    static std::unique_ptr<IModel> createModel(ModelType type, ModelInfo info);
 };

@@ -9,7 +9,7 @@
 
 using nlohmann::json;
 
-std::unique_ptr<BaseModel> ModelFactory::createModel(ModelType type, ModelInfo info) {
+std::unique_ptr<IModel> ModelFactory::createModel(ModelType type, ModelInfo info) {
     std::string file_path;
     
     switch (type) {

@@ -1,17 +1,9 @@
+#include "base_task.hpp"
+
 #include <queue>
 #include <mutex>
 #include <thread>
 #include <condition_variable>
-
-
-class BaseTask {
-public:
-    virtual ~BaseTask() = default;
-
-    virtual void execute() = 0; 
-
-    virtual const char* name() const = 0; 
-};
 
 
 class TaskQueue {

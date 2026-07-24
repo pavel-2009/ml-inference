@@ -30,3 +30,13 @@ std::unique_ptr<BaseTask> TaskQueue::pop() {
 
     return task;
 }
+
+size_t TaskQueue::size() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_tasks.size();
+}
+
+bool TaskQueue::empty() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_tasks.empty();
+}

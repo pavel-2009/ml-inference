@@ -1,4 +1,7 @@
 #include "model_factory.hpp"
+#include "average_model.hpp"
+#include "sort_model.hpp"
+#include "sum_model.hpp"
 
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -47,5 +50,13 @@ std::unique_ptr<BaseModel> ModelFactory::createModelFromFile(const std::string& 
     info.description = model_config.value("description", "");
     info.enabled = model_config.value("enabled", true);
     
-    return std::make_unique<BaseModel>(std::move(info));
+    if (info.type == "average") {
+        return std::make_unique<AverageModel>(std::move(info));
+    } else if (info.type == "sort") {
+        return std::make_unique<SortModel>(std::move(info));
+    } else if (info.type == "sum") {
+        return std::make_unique<SumModel>(std::move(info));
+    } else {
+        throw std::runtime_error("Unknown model type: " + info.type);
+    }
 }

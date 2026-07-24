@@ -37,3 +37,11 @@ void ModelManager::clear() {
 
     models_.clear();
 }
+
+bool ModelManager::contains(const std::string& id) const {
+    if (models_.contains(id)) {
+        return true;
+    };
+
+    return false;
+}

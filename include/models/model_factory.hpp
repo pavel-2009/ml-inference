@@ -15,6 +15,5 @@ enum class ModelType
 
 class ModelFactory {
 public:
-    static std::unique_ptr<BaseModel> createModel(ModelType type);
-    static std::unique_ptr<BaseModel> createModelFromFile(const std::string& file_path);
+    static std::unique_ptr<BaseModel> createModel(ModelType type, ModelInfo info);
 };

@@ -1,5 +1,5 @@
 #include <queue>
-#include <shared_mutex>
+#include <mutex>
 #include <thread>
 #include <condition_variable>
 
@@ -17,7 +17,7 @@ public:
 class TaskQueue {
     private:
         std::queue<std::unique_ptr<BaseTask>> tasks_;
-        std::shared_mutex mutex_;
+        std::mutex mutex_;
         std::condition_variable cv;
 
     public:

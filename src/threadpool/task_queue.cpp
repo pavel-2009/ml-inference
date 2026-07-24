@@ -9,7 +9,7 @@ void TaskQueue::push(std::unique_ptr<BaseTask> task) {
     }
 
     {
-        std::lock_guard lock(mutex_);
+        std::unique_lock lock(mutex_);
 
         tasks_.push(std::move(task));
     };
@@ -19,7 +19,7 @@ void TaskQueue::push(std::unique_ptr<BaseTask> task) {
 
 std::unique_ptr<BaseTask> TaskQueue::pop() {
 
-    std::lock_guard lock(mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
 
     cv.wait(lock, [this]{
         return !tasks_.empty();

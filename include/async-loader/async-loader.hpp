@@ -13,6 +13,7 @@ class AsyncLoader {
         ThreadPool& pool_;
         ModelFactory& factory_;
         ModelManager& manager_;
+        std::filesystem::path models_dir_;
 
     private:
         void loadModel(const std::filesystem::path& file);

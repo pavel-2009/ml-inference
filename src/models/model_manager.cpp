@@ -6,7 +6,7 @@
 #include <mutex>
 
 
-std::shared_ptr<BaseModel> ModelManager::get(const std::string& id) {
+std::shared_ptr<IModel> ModelManager::get(const std::string& id) {
 
     std::shared_lock lock(mutex_);
     
@@ -20,7 +20,7 @@ std::shared_ptr<BaseModel> ModelManager::get(const std::string& id) {
     
 }
 
-void ModelManager::add(const std::string& id, std::shared_ptr<BaseModel> model) {
+void ModelManager::add(const std::string& id, std::shared_ptr<IModel> model) {
     std::unique_lock lock(mutex_);
 
     models_.emplace(id, std::move(model));

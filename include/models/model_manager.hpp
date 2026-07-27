@@ -6,16 +6,16 @@
 
 class ModelManager {
     private:
-        std::unordered_map<std::string, std::shared_ptr<BaseModel>> models_;
+        std::unordered_map<std::string, std::shared_ptr<IModel>> models_;
         mutable std::shared_mutex mutex_;
 
     private:
         bool contains(const std::string& id) const;
 
     public:
-        std::shared_ptr<BaseModel> get(const std::string& id);
+        std::shared_ptr<IModel> get(const std::string& id);
         
-        void add(const std::string& id, std::shared_ptr<BaseModel> model);
+        void add(const std::string& id, std::shared_ptr<IModel> model);
 
         void remove(const std::string& id);
 

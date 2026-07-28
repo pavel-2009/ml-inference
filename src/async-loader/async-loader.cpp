@@ -4,6 +4,7 @@
 #include "model_manager.hpp"
 #include "model_info.hpp"
 #include "imodel.hpp"
+#include "model-task.hpp"
 
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -133,9 +134,15 @@ void AsyncLoader::loadAll() {
     try {
         for (const auto& file : std::filesystem::directory_iterator(models_dir_)) {
             if (std::filesystem::is_regular_file(file.path())) {
-                
-            }
-        }
-    }
+                if (!std::filesystem::is_regular_file(file.path())) continue;
+                if (file.path().extension() != ".json") continue;
 
-}
+                auto task = std::make_unique<ModelLoadTask>(this, file.path());
+
+                pool_.enqueue(std::move(task));
+            };
+        };
+    } catch (const std::exception& e) {
+        std::cerr << "❌ Ошибка при обходе директории: " << e.what() << '\n';
+    }
+};

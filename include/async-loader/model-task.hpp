@@ -16,7 +16,7 @@ class ModelLoadTask : public BaseTask {
             } catch (const std::exception& e) {
                 std::cerr << "❌ Ошибка загрузки " << file_.filename() 
                         << ": " << e.what() << '\n';
-            };
+            }
         };
         
     private:

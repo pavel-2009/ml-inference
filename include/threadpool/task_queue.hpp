@@ -11,7 +11,7 @@
 class TaskQueue {
     private:
         std::queue<std::unique_ptr<BaseTask>> tasks_;
-        std::mutex mutex_;
+        mutable std::mutex mutex_;
         std::condition_variable cv;
 
     public:

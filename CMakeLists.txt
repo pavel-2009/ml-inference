@@ -12,18 +12,6 @@ message(STATUS "Building ML-Inference ${PROJECT_VERSION}")
 # Find dependencies
 find_package(nlohmann_json REQUIRED)
 
-# Include directories
-target_include_directories(ml_inference PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/include/async-loader
-    ${PROJECT_SOURCE_DIR}/include/threadpool
-    ${PROJECT_SOURCE_DIR}/include/models
-    ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/async-loader
-    ${PROJECT_SOURCE_DIR}/src/threadpool
-    ${PROJECT_SOURCE_DIR}/src/models
-)
-
 # Source files
 set(PROJECT_SOURCES
     src/main.cpp
@@ -37,8 +25,20 @@ set(PROJECT_SOURCES
     src/async-loader/async-loader.cpp
 )
 
-# Create executable
+# Create executable (СНАЧАЛА создаём таргет)
 add_executable(ml_inference ${PROJECT_SOURCES})
+
+# Include directories (ПОТОМ добавляем include директории)
+target_include_directories(ml_inference PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/async-loader
+    ${PROJECT_SOURCE_DIR}/include/threadpool
+    ${PROJECT_SOURCE_DIR}/include/models
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/async-loader
+    ${PROJECT_SOURCE_DIR}/src/threadpool
+    ${PROJECT_SOURCE_DIR}/src/models
+)
 
 # Link libraries
 target_link_libraries(ml_inference

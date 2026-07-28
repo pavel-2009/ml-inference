@@ -127,3 +127,15 @@ void AsyncLoader::loadModel(const std::filesystem::path& file) {
 
     return;
 };
+
+void AsyncLoader::loadAll() {
+
+    try {
+        for (const auto& file : std::filesystem::directory_iterator(models_dir_)) {
+            if (std::filesystem::is_regular_file(file.path())) {
+                
+            }
+        }
+    }
+
+}

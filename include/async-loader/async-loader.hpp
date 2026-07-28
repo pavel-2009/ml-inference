@@ -16,7 +16,6 @@ class AsyncLoader {
         std::filesystem::path models_dir_;
 
     private:
-        void loadModel(const std::filesystem::path& file);
         ModelInfo readConfig(const std::filesystem::path& file);
 
     public:
@@ -26,6 +25,8 @@ class AsyncLoader {
             ModelManager& manager,
             std::filesystem::path dir
         );
+
+        void loadModel(const std::filesystem::path& file);
 
         void loadAll();
 };

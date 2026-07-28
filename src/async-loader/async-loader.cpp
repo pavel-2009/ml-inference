@@ -124,6 +124,8 @@ void AsyncLoader::loadModel(const std::filesystem::path& file) {
 
     model = factory_.createModel(type, config);
 
+    model->load();
+
     manager_.add(config.id, model);
 
     return;

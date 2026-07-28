@@ -3,22 +3,17 @@
 #include "sort_model.hpp"
 #include "sum_model.hpp"
 
-#include <nlohmann/json.hpp>
-#include <fstream>
 #include <stdexcept>
 
-using nlohmann::json;
 
-std::unique_ptr<IModel> ModelFactory::createModel(ModelType type, ModelInfo info) {
-    std::string file_path;
-    
+std::unique_ptr<IModel> ModelFactory::create(ModelType type, const ModelInfo& info) {
     switch (type) {
         case ModelType::AVERAGE:
-            return std::make_unique<AverageModel>(std::move(info));
+            return std::make_unique<AverageModel>(info);
         case ModelType::SORT:
-            return std::make_unique<SortModel>(std::move(info));
+            return std::make_unique<SortModel>(info);
         case ModelType::SUM:
-            return std::make_unique<SumModel>(std::move(info));
+            return std::make_unique<SumModel>(info);
         default:
             throw std::runtime_error("Unknown model type: " + info.type);
     }

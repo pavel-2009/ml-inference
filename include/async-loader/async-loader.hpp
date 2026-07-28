@@ -6,6 +6,7 @@
 #include "model_info.hpp"
 
 #include <filesystem>
+#include <string>
 
 
 class AsyncLoader {
@@ -20,10 +21,10 @@ class AsyncLoader {
             ThreadPool& pool,
             ModelFactory& factory,
             ModelManager& manager,
-            std::filesystem::path dir
+            const std::filesystem::path& dir
         );
 
-        ModelInfo readConfig(const std::filesystem::path& file);
+        ModelInfo readConfig(const std::filesystem::path& file) const;
 
         void loadModel(const std::filesystem::path& file);
 

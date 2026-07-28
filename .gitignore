@@ -1,0 +1,16 @@
+```
+# Build artifacts
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+ml_inference
+models/
+*.o
+*.d
+*.bin
+*.out
+*.log
+```

@@ -4,6 +4,8 @@
 #include <thread>
 #include <atomic>
 #include <memory>
+#include <mutex>
+#include <condition_variable>
 #include "task_queue.hpp"
 #include "base_task.hpp"
 
@@ -13,12 +15,15 @@ class ThreadPool {
         std::vector<std::jthread> workers_;
         TaskQueue& tasks_;
         std::atomic<bool> stop_flag_;
+        std::mutex cv_mutex_;
+        std::condition_variable cv_;
 
     private:
         void worker_loop();
+        void stop() noexcept;
 
     public:
-        ThreadPool(size_t num_threads, TaskQueue& task_queue);
+        explicit ThreadPool(size_t num_threads, TaskQueue& task_queue);
         
         ~ThreadPool();
 

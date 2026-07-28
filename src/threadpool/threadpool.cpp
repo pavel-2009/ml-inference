@@ -8,11 +8,23 @@ void ThreadPool::worker_loop() {
     while (!stop_flag_) {
         try
         {
+            std::unique_lock lock(mutex_);
+
+            cv_finished_.wait(lock, [&]{
+                return active_tasks_ == 0;
+            });
+
             auto task = tasks_.pop();
 
             if (!task) continue;
 
             task->execute();
+
+            --active_tasks_;
+
+            if (active_tasks_ == 0) {
+                cv_finished_.notify_all();
+            }
         }
         catch(const std::exception& e)
         {
@@ -49,6 +61,7 @@ ThreadPool::~ThreadPool() {
 
 void ThreadPool::enqueue(std::unique_ptr<BaseTask> task) {
     tasks_.push(std::move(task));
+    ++active_tasks_;
 }
 
 size_t ThreadPool::size() const {

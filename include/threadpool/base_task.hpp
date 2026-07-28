@@ -1,3 +1,5 @@
+#pragma once
+
 class BaseTask {
 public:
     virtual ~BaseTask() = default;

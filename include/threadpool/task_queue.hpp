@@ -1,3 +1,5 @@
+#pragma once
+
 #include "base_task.hpp"
 
 #include <queue>

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "base_model.hpp"
 
 #include <shared_mutex>
@@ -15,7 +17,8 @@ class ModelManager {
     public:
         std::shared_ptr<IModel> get(const std::string& id);
         
-        void add(const std::string& id, std::shared_ptr<IModel> model);
+        void add(const std::string& id, std::shared_ptr
+            <IModel> model);
 
         void remove(const std::string& id);
 

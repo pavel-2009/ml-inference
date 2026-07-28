@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(ML-Inference VERSION 1.0.0)
 
-# Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+# Set C++ standard to C++20
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -11,6 +11,18 @@ message(STATUS "Building ML-Inference ${PROJECT_VERSION}")
 
 # Find dependencies
 find_package(nlohmann_json REQUIRED)
+
+# Include directories
+target_include_directories(ml_inference PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/async-loader
+    ${PROJECT_SOURCE_DIR}/include/threadpool
+    ${PROJECT_SOURCE_DIR}/include/models
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/async-loader
+    ${PROJECT_SOURCE_DIR}/src/threadpool
+    ${PROJECT_SOURCE_DIR}/src/models
+)
 
 # Source files
 set(PROJECT_SOURCES
@@ -28,13 +40,6 @@ set(PROJECT_SOURCES
 # Create executable
 add_executable(ml_inference ${PROJECT_SOURCES})
 
-# Include directories (target-specific)
-target_include_directories(ml_inference PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/include/async-loader
-    ${PROJECT_SOURCE_DIR}/src  # если заголовки в src
-)
-
 # Link libraries
 target_link_libraries(ml_inference
     nlohmann_json::nlohmann_json
@@ -42,10 +47,10 @@ target_link_libraries(ml_inference
 
 # Compiler options
 if(MSVC)
-    target_compile_options(ml_inference PRIVATE /W4 /std:c++17)
+    target_compile_options(ml_inference PRIVATE /W4 /std:c++20)
 else()
-    target_compile_options(ml_inference PRIVATE -Wall -Wextra -Wpedantic -std=c++17)
-    target_compile_features(ml_inference PRIVATE cxx_std_17)
+    target_compile_options(ml_inference PRIVATE -Wall -Wextra -Wpedantic -std=c++20)
+    target_compile_features(ml_inference PRIVATE cxx_std_20)
 endif()
 
 # Testing

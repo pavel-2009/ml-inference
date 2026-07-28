@@ -15,9 +15,6 @@ class AsyncLoader {
         ModelManager& manager_;
         std::filesystem::path models_dir_;
 
-    private:
-        ModelInfo readConfig(const std::filesystem::path& file);
-
     public:
         AsyncLoader(
             ThreadPool& pool,
@@ -25,6 +22,8 @@ class AsyncLoader {
             ModelManager& manager,
             std::filesystem::path dir
         );
+
+        ModelInfo readConfig(const std::filesystem::path& file);
 
         void loadModel(const std::filesystem::path& file);
 

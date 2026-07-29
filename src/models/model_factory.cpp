@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 
-std::shared_ptr<IModel> ModelFactory::createModel(ModelType type, ModelInfo info) {
+std::shared_ptr<IModel> ModelFactory::create(ModelType type, const ModelInfo& info) {
     std::string file_path;
     
     switch (type) {

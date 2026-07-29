@@ -18,9 +18,9 @@ void ThreadPool::worker_loop() {
         std::unique_ptr<BaseTask> task;
         
         {
-            std::unique_lock lock(mutex_);
+            std::unique_lock lock(cv_mutex_);
 
-            cv_finished_.wait(lock, [&]{
+            cv_.wait(lock, [&]{
                 return active_tasks_ == 0;
             });
 
@@ -33,7 +33,7 @@ void ThreadPool::worker_loop() {
             --active_tasks_;
 
             if (active_tasks_ == 0) {
-                cv_finished_.notify_all();
+                cv_.notify_all();
             }
         }
     }

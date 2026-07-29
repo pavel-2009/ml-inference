@@ -145,6 +145,8 @@ void AsyncLoader::loadModel(const std::filesystem::path& file) {
         return;
     }
 
+    model->load();
+
     manager_.add(config.id, model);
 
     auto end = std::chrono::steady_clock::now();

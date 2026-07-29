@@ -18,29 +18,23 @@ void ThreadPool::worker_loop() {
         std::unique_ptr<BaseTask> task;
         
         {
-            std::unique_lock<std::mutex> lock(cv_mutex_);
-            
-            cv_.wait(lock, [this] {
-                return stop_flag_ || !tasks_.empty();
+            std::unique_lock lock(mutex_);
+
+            cv_finished_.wait(lock, [&]{
+                return active_tasks_ == 0;
             });
-            
-            if (stop_flag_ && tasks_.empty()) {
-                return;
-            }
-            
-            task = tasks_.pop_no_wait();
-        }
-        
-        if (!task) {
-            continue;
-        }
-        
-        try {
+
+            auto task = tasks_.pop();
+
+            if (!task) continue;
+
             task->execute();
-        } catch (const std::exception& e) {
-            std::cerr << "Task exception: " << e.what() << '\n';
-        } catch (...) {
-            std::cerr << "Task unknown exception\n";
+
+            --active_tasks_;
+
+            if (active_tasks_ == 0) {
+                cv_finished_.notify_all();
+            }
         }
     }
 }
@@ -71,11 +65,7 @@ void ThreadPool::enqueue(std::unique_ptr<BaseTask> task) {
     }
     
     tasks_.push(std::move(task));
-    
-    {
-        std::lock_guard<std::mutex> lock(cv_mutex_);
-    }
-    cv_.notify_one();
+    ++active_tasks_;
 }
 
 size_t ThreadPool::size() const {

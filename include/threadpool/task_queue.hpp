@@ -4,15 +4,13 @@
 
 #include <queue>
 #include <mutex>
-#include <thread>
-#include <condition_variable>
+#include <memory>
 
 
 class TaskQueue {
     private:
         std::queue<std::unique_ptr<BaseTask>> tasks_;
         mutable std::mutex mutex_;
-        std::condition_variable cv;
 
     public:
         TaskQueue() = default;
@@ -23,6 +21,8 @@ class TaskQueue {
         void push(std::unique_ptr<BaseTask> task);
 
         std::unique_ptr<BaseTask> pop();
+
+        std::unique_ptr<BaseTask> pop_no_wait();
 
         size_t size() const;
         bool empty() const;

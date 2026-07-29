@@ -1,16 +1,16 @@
-#include "async-loader.hpp"
-#include "threadpool.hpp"
-#include "model_factory.hpp"
-#include "model_manager.hpp"
-#include "model_info.hpp"
-#include "imodel.hpp"
-#include "model-task.hpp"
+#include "async-loader/async-loader.hpp"
+#include "async-loader/model-task.hpp"
+#include "threadpool/threadpool.hpp"
+#include "models/model_factory.hpp"
+#include "models/model_manager.hpp"
+#include "models/imodel.hpp"
 
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <chrono>
 
 using nlohmann::json;
 
@@ -19,11 +19,11 @@ AsyncLoader::AsyncLoader(
     ThreadPool& pool,
     ModelFactory& factory,
     ModelManager& manager,
-    std::filesystem::path dir
+    const std::filesystem::path& dir
 ) : pool_(pool), factory_(factory), manager_(manager), models_dir_(dir) {}
 
 
-ModelInfo AsyncLoader::readConfig(const std::filesystem::path& file) {
+ModelInfo AsyncLoader::readConfig(const std::filesystem::path& file) const {
     if (!std::filesystem::exists(file)) {
         throw std::runtime_error("Файл не существует: " + file.string());
     }
@@ -98,7 +98,7 @@ ModelInfo AsyncLoader::readConfig(const std::filesystem::path& file) {
     return model_info;
 }
 
-ModelType stringToModelType(const std::string& type_str) {
+static ModelType stringToModelType(const std::string& type_str) {
     if (type_str == "average") {
         return ModelType::AVERAGE;
     } else if (type_str == "sum") {
@@ -111,40 +111,58 @@ ModelType stringToModelType(const std::string& type_str) {
 }
 
 void AsyncLoader::loadModel(const std::filesystem::path& file) {
-    ModelInfo config = readConfig(file);
+    auto start = std::chrono::steady_clock::now();
+    
+    ModelInfo config;
+    try {
+        config = readConfig(file);
+    } catch (const std::exception& e) {
+        std::cerr << "Loading failed: " << file.filename() << " - " << e.what() << '\n';
+        return;
+    }
     
     if (!config.enabled) {
-        std::cout << "Модель " << config.id << " отключена, пропускаем\n";
+        std::cout << "Model " << config.id << " is disabled, skipping\n";
         return;
     }
 
-    ModelType type = stringToModelType(config.type);
+    std::cout << "Loading model: " << config.id << '\n';
+
+    ModelType type;
+    try {
+        type = stringToModelType(config.type);
+    } catch (const std::exception& e) {
+        std::cerr << "Loading failed: " << config.id << " - " << e.what() << '\n';
+        return;
+    }
     
     std::shared_ptr<IModel> model;
-
-    model = factory_.createModel(type, config);
+    try {
+        model = factory_.create(type, config);
+        model->load();
+    } catch (const std::exception& e) {
+        std::cerr << "Loading failed: " << config.id << " - " << e.what() << '\n';
+        return;
+    }
 
     model->load();
 
     manager_.add(config.id, model);
 
-    return;
-};
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "Model loaded: " << config.id << " in " << duration << " ms\n";
+}
 
 void AsyncLoader::loadAll() {
-
     try {
-        for (const auto& file : std::filesystem::directory_iterator(models_dir_)) {
-            if (std::filesystem::is_regular_file(file.path())) {
-                if (!std::filesystem::is_regular_file(file.path())) continue;
-                if (file.path().extension() != ".json") continue;
-
-                auto task = std::make_unique<ModelLoadTask>(this, file.path());
-
+        for (const auto& entry : std::filesystem::directory_iterator(models_dir_)) {
+            if (std::filesystem::is_regular_file(entry.path()) && entry.path().extension() == ".json") {
+                auto task = std::make_unique<ModelLoadTask>(this, entry.path());
                 pool_.enqueue(std::move(task));
-            };
-        };
+            }
+        }
     } catch (const std::exception& e) {
         std::cerr << "❌ Ошибка при обходе директории: " << e.what() << '\n';
     }
-};
+}

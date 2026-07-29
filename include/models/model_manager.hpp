@@ -4,6 +4,8 @@
 
 #include <shared_mutex>
 #include <unordered_map>
+#include <string>
+#include <memory>
 
 
 class ModelManager {
@@ -15,10 +17,9 @@ class ModelManager {
         bool contains(const std::string& id) const;
 
     public:
-        std::shared_ptr<IModel> get(const std::string& id);
+        std::shared_ptr<IModel> get(const std::string& id) const;
         
-        void add(const std::string& id, std::shared_ptr
-            <IModel> model);
+        void add(const std::string& id, std::shared_ptr<IModel> model);
 
         void remove(const std::string& id);
 

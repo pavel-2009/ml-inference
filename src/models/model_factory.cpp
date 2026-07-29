@@ -3,11 +3,8 @@
 #include "sort_model.hpp"
 #include "sum_model.hpp"
 
-#include <nlohmann/json.hpp>
-#include <fstream>
 #include <stdexcept>
 
-using nlohmann::json;
 
 std::shared_ptr<IModel> ModelFactory::createModel(ModelType type, ModelInfo info) {
     std::string file_path;

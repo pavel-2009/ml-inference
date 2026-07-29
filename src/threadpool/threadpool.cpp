@@ -1,12 +1,22 @@
-#include "threadpool.hpp"
+#include "threadpool/threadpool.hpp"
 #include "base_task.hpp"
 
 #include <iostream>
 
 
+void ThreadPool::stop() noexcept {
+    stop_flag_ = true;
+    
+    {
+        std::lock_guard<std::mutex> lock(cv_mutex_);
+    }
+    cv_.notify_all();
+}
+
 void ThreadPool::worker_loop() {
-    while (!stop_flag_) {
-        try
+    while (true) {
+        std::unique_ptr<BaseTask> task;
+        
         {
             std::unique_lock lock(mutex_);
 
@@ -26,10 +36,6 @@ void ThreadPool::worker_loop() {
                 cv_finished_.notify_all();
             }
         }
-        catch(const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
-        }    
     }
 }
 
@@ -50,16 +56,14 @@ ThreadPool::ThreadPool(size_t num_threads, TaskQueue& task_queue)
 }
 
 ThreadPool::~ThreadPool() {
-    stop_flag_ = true;
-
-    for (std::jthread& worker : workers_) {
-        if (worker.joinable()) {
-            worker.join();
-        }
-    }
+    stop();
 }
 
 void ThreadPool::enqueue(std::unique_ptr<BaseTask> task) {
+    if (!task) {
+        return;
+    }
+    
     tasks_.push(std::move(task));
     ++active_tasks_;
 }

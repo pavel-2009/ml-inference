@@ -1,7 +1,7 @@
 #pragma once
 
 #include "base_task.hpp"
-#include "async-loader.hpp"
+#include "async-loader/async-loader.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -18,6 +18,8 @@ class ModelLoadTask : public BaseTask {
             } catch (const std::exception& e) {
                 std::cerr << "❌ Ошибка загрузки " << file_.filename() 
                         << ": " << e.what() << '\n';
+            } catch (...) {
+                std::cerr << "❌ Неизвестная ошибка загрузки " << file_.filename() << '\n';
             }
         };
         

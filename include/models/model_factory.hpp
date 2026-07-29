@@ -15,5 +15,5 @@ enum class ModelType
 
 class ModelFactory {
 public:
-    static std::shared_ptr<IModel> createModel(ModelType type, ModelInfo info);
+    static std::unique_ptr<IModel> create(ModelType type, const ModelInfo& info);
 };

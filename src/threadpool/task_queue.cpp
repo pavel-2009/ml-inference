@@ -1,6 +1,7 @@
 #include "threadpool/task_queue.hpp"
 
 #include <mutex>
+#include <thread>
 
 
 void TaskQueue::push(std::unique_ptr<BaseTask> task) {
@@ -10,20 +11,31 @@ void TaskQueue::push(std::unique_ptr<BaseTask> task) {
 
     {
         std::unique_lock lock(mutex_);
-
         tasks_.push(std::move(task));
-    };
-
-    cv.notify_one();
+    }
 }
 
 std::unique_ptr<BaseTask> TaskQueue::pop() {
-
     std::unique_lock<std::mutex> lock(mutex_);
+    
+    while (tasks_.empty()) {
+        lock.unlock();
+        std::this_thread::yield();
+        lock.lock();
+    }
 
-    cv.wait(lock, [this]{
-        return !tasks_.empty();
-    });
+    auto task = std::move(tasks_.front());
+    tasks_.pop();
+
+    return task;
+}
+
+std::unique_ptr<BaseTask> TaskQueue::pop_no_wait() {
+    std::unique_lock lock(mutex_);
+    
+    if (tasks_.empty()) {
+        return nullptr;
+    }
 
     auto task = std::move(tasks_.front());
     tasks_.pop();

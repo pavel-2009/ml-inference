@@ -17,8 +17,8 @@ class ThreadPool {
         TaskQueue& tasks_;
         std::atomic<bool> stop_flag_;
         std::atomic<size_t> active_tasks_;
-        std::condition_variable cv_finished_;
-        std::mutex mutex_;
+        std::condition_variable cv_;
+        std::mutex cv_mutex_;
 
     private:
         void worker_loop();

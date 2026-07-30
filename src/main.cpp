@@ -29,6 +29,32 @@ void printModelInfo(const ModelInfo& info, const std::string& prefix = "  ") {
     std::cout << prefix << "  Enabled:     " << (info.enabled ? "true" : "false") << '\n';
 }
 
+// Вспомогательная функция для тестирования inference
+void testInference(InferenceService& service, const std::string& model_id, const json& input, 
+                   const std::string& test_name = "") {
+    if (!test_name.empty()) {
+        std::cout << "\n🧪 Тест: " << test_name << "\n";
+    }
+    
+    InferenceRequest request;
+    request.data = {
+        {"model_id", model_id},
+        {"input", input}
+    };
+    
+    std::cout << "  📤 Отправка запроса для модели '" << model_id << "'\n";
+    std::cout << "  📥 Входные данные: " << input.dump() << '\n';
+    
+    InferenceResponse response = service.infer(request);
+    
+    if (response.success) {
+        std::cout << "  ✅ Успешно!\n";
+        std::cout << "  📤 Результат: " << response.result.dump(2) << '\n';
+    } else {
+        std::cout << "  ❌ Ошибка: " << response.error << '\n';
+    }
+}
+
 int main() {
     std::cout << "=========================================\n";
     std::cout << "🚀 ТЕСТИРОВАНИЕ ASYNCLOADER\n";
@@ -40,6 +66,7 @@ int main() {
     ThreadPool pool(4, queue);
     ModelFactory factory;
     ModelManager manager;
+    InferenceService inference_service(manager);
     std::cout << "✅ Зависимости созданы\n\n";
     
     // 2. Проверяем директорию
@@ -94,13 +121,129 @@ int main() {
     std::cout << "----------------------------------------\n";
     
     // 6. Ждём завершения задач
-    std::cout << "\n⏳ Ожидание завершения задач (5 сек)...\n";
+    std::cout << "\n⏳ Ожидание завершения загрузки моделей (5 сек)...\n";
     for (int i = 5; i > 0; --i) {
         std::cout << "  " << i << "...\r";
         std::cout.flush();
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    std::cout << "  ✅ Готово!          \n";
+    std::cout << "  ✅ Загрузка завершена!          \n\n";
+    
+    // ============================================
+    // 7. ТЕСТИРОВАНИЕ INFERENCE SERVICE
+    // ============================================
+    std::cout << "=========================================\n";
+    std::cout << "🧪 ТЕСТИРОВАНИЕ INFERENCE SERVICE\n";
+    std::cout << "=========================================\n\n";
+    
+    // Получаем список загруженных моделей
+    std::vector<std::string> model_ids;
+    for (const auto& file : json_files) {
+        try {
+            ModelInfo info = loader.readConfig(file);
+            if (info.enabled) {
+                model_ids.push_back(info.id);
+            }
+        } catch (...) {
+            // Пропускаем ошибки чтения
+        }
+    }
+    
+    if (model_ids.empty()) {
+        std::cout << "⚠️ Нет загруженных моделей для тестирования!\n";
+    } else {
+        std::cout << "📊 Доступные модели для тестирования:\n";
+        for (const auto& id : model_ids) {
+            std::cout << "  - " << id << '\n';
+        }
+        std::cout << '\n';
+        
+        // Тестируем каждую модель
+        for (const auto& model_id : model_ids) {
+            std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+            
+            // Тест 1: Простой запрос
+            json test_input = {
+                {"text", "Hello, world!"},
+                {"params", {
+                    {"temperature", 0.7},
+                    {"max_tokens", 50}
+                }}
+            };
+            testInference(inference_service, model_id, test_input, 
+                         "Простой запрос для " + model_id);
+            
+            // Тест 2: Пустые входные данные
+            json empty_input = json::object();
+            testInference(inference_service, model_id, empty_input,
+                         "Пустые входные данные для " + model_id);
+            
+            // Тест 3: Некорректная модель
+            testInference(inference_service, "non_existent_model", test_input,
+                         "Запрос к несуществующей модели");
+            
+            // Тест 4: Запрос без обязательных полей
+            InferenceRequest invalid_request;
+            invalid_request.data = {
+                {"some_other_field", "value"}
+            };
+            std::cout << "\n🧪 Тест: Запрос без model_id\n";
+            InferenceResponse invalid_response = inference_service.infer(invalid_request);
+            if (!invalid_response.success) {
+                std::cout << "  ✅ Ошибка корректно обработана: " << invalid_response.error << '\n';
+            } else {
+                std::cout << "  ❌ Ошибка не была обнаружена!\n";
+            }
+            
+            std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
+        }
+        
+        // Тест 5: Пакетная обработка (если поддерживается)
+        std::cout << "📦 Тест пакетной обработки:\n";
+        json batch_input = {
+            {"inputs", {
+                {"text", "First input"},
+                {"text", "Second input"},
+                {"text", "Third input"}
+            }},
+            {"batch_size", 2}
+        };
+        
+        if (!model_ids.empty()) {
+            testInference(inference_service, model_ids[0], batch_input,
+                         "Пакетная обработка для " + model_ids[0]);
+        }
+        
+        // Тест 6: Сложный JSON с вложенными структурами
+        std::cout << "\n📦 Тест со сложным JSON:\n";
+        json complex_input = {
+            {"config", {
+                {"mode", "inference"},
+                {"precision", "float32"},
+                {"device", "cpu"}
+            }},
+            {"data", {
+                {"features", {
+                    {"age", 25},
+                    {"income", 50000},
+                    {"education", "bachelor"}
+                }},
+                {"metadata", {
+                    {"timestamp", "2026-07-30T12:00:00Z"},
+                    {"user_id", "user_123"}
+                }}
+            }},
+            {"options", {
+                {"return_attention", true},
+                {"return_logits", false}
+            }}
+        };
+        
+        if (!model_ids.empty()) {
+            testInference(inference_service, model_ids[0], complex_input,
+                         "Сложный JSON для " + model_ids[0]);
+        }
+    }
     
     std::cout << "\n=========================================\n";
     std::cout << "✅ Тестирование завершено!\n";

@@ -6,7 +6,7 @@
 using nlohmann::json;
 
 InferenceService::InferenceService(ModelManager& manager)
-    : manager_(manager) {};
+    : manager_(manager) {}
 
 
 InferenceResponse InferenceService::infer(const InferenceRequest& request) {
@@ -37,13 +37,13 @@ InferenceResponse InferenceService::infer(const InferenceRequest& request) {
             return response;
         }
 
-        json input = data["input"];
-        
-        InferenceResponse output = model->infer(request);
-        
-        response.success = true;
-        response.result = output.result;
-        response.error = "";
+        if (!model->ready()) {
+            response.success = false;
+            response.error = "Model is not ready: " + model_id;
+            return response;
+        }
+
+        response = model->infer(request);
         
     } catch (const json::exception& e) {
         response.success = false;

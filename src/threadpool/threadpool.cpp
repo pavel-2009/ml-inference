@@ -40,8 +40,8 @@ void ThreadPool::worker_loop() {
 }
 
 ThreadPool::ThreadPool(size_t num_threads, TaskQueue& task_queue)
-    : tasks_(task_queue)
-    , stop_flag_(false) 
+    : tasks_(task_queue), 
+      stop_flag_(false) 
 {
     if (num_threads == 0) {
         num_threads = 1; 

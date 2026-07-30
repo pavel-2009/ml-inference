@@ -2,7 +2,7 @@
 
 #include "threadpool.hpp"
 #include "model_factory.hpp"
-#include "model_manager.hpp"
+#include "models/average_model.hpp"
 #include "model_info.hpp"
 
 #include <filesystem>

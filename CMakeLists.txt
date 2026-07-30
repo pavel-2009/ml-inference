@@ -15,11 +15,11 @@ find_package(nlohmann_json REQUIRED)
 # Source files
 set(PROJECT_SOURCES
     src/main.cpp
-    src/models/average_model.cpp
-    src/models/model_factory.cpp
-    src/models/model_manager.cpp
-    src/models/sort_model.cpp
-    src/models/sum_model.cpp
+    src/model/models/average_model.cpp
+    src/model/model_factory.cpp
+    src/model/model_manager.cpp
+    src/model/models/sort_model.cpp
+    src/model/models/sum_model.cpp
     src/threadpool/task_queue.cpp
     src/threadpool/threadpool.cpp
     src/async-loader/async-loader.cpp
@@ -33,11 +33,11 @@ target_include_directories(ml_inference PRIVATE
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/async-loader
     ${PROJECT_SOURCE_DIR}/include/threadpool
-    ${PROJECT_SOURCE_DIR}/include/models
+    ${PROJECT_SOURCE_DIR}/include/model
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/async-loader
     ${PROJECT_SOURCE_DIR}/src/threadpool
-    ${PROJECT_SOURCE_DIR}/src/models
+    ${PROJECT_SOURCE_DIR}/src/model
 )
 
 # Link libraries

@@ -7,8 +7,7 @@ InferenceResponse
 SortModel::infer(
     const InferenceRequest& request)
 {
-    auto data =
-        request.data.get<std::vector<int>>();
+    auto data = request.input;
 
     std::sort(
         data.begin(),
@@ -18,6 +17,7 @@ SortModel::infer(
     {
         true,
         data,
+        0.0,
         ""
     };
 }

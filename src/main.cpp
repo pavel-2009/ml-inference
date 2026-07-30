@@ -30,26 +30,38 @@ void printModelInfo(const ModelInfo& info, const std::string& prefix = "  ") {
 }
 
 // Вспомогательная функция для тестирования inference
-void testInference(InferenceService& service, const std::string& model_id, const json& input, 
+void testInference(InferenceService& service, const std::string& model_id, const std::vector<int>& input, 
                    const std::string& test_name = "") {
     if (!test_name.empty()) {
         std::cout << "\n🧪 Тест: " << test_name << "\n";
     }
     
     InferenceRequest request;
-    request.data = {
-        {"model_id", model_id},
-        {"input", input}
-    };
+    request.model_id = model_id;
+    request.input = input;
     
     std::cout << "  📤 Отправка запроса для модели '" << model_id << "'\n";
-    std::cout << "  📥 Входные данные: " << input.dump() << '\n';
+    std::cout << "  📥 Входные данные: [";
+    for (size_t i = 0; i < input.size(); ++i) {
+        if (i > 0) std::cout << ", ";
+        std::cout << input[i];
+    }
+    std::cout << "]\n";
     
     InferenceResponse response = service.infer(request);
     
     if (response.success) {
         std::cout << "  ✅ Успешно!\n";
-        std::cout << "  📤 Результат: " << response.result.dump(2) << '\n';
+        if (!response.result_int.empty()) {
+            std::cout << "  📤 Результат (int): [";
+            for (size_t i = 0; i < response.result_int.size(); ++i) {
+                if (i > 0) std::cout << ", ";
+                std::cout << response.result_int[i];
+            }
+            std::cout << "]\n";
+        } else {
+            std::cout << "  📤 Результат (double): " << response.result_double << '\n';
+        }
     } else {
         std::cout << "  ❌ Ошибка: " << response.error << '\n';
     }
@@ -162,18 +174,18 @@ int main() {
         for (const auto& model_id : model_ids) {
             std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
             
-            // Исправлено: Тест 1 - массив целых чисел
-            json test_input = json::array({5, 3, 8, 1, 9, 2});
+            // Тест 1 - массив целых чисел
+            std::vector<int> test_input = {5, 3, 8, 1, 9, 2};
             testInference(inference_service, model_id, test_input, 
                          "Сортировка массива для " + model_id);
             
-            // Исправлено: Тест 2 - массив с отрицательными числами
-            json negative_input = json::array({-5, 3, -8, 1, -9, 2});
+            // Тест 2 - массив с отрицательными числами
+            std::vector<int> negative_input = {-5, 3, -8, 1, -9, 2};
             testInference(inference_service, model_id, negative_input,
                          "Массив с отрицательными числами для " + model_id);
             
-            // Исправлено: Тест 3 - пустой массив (проверка обработки)
-            json empty_array = json::array();
+            // Тест 3 - пустой массив (проверка обработки)
+            std::vector<int> empty_array = {};
             testInference(inference_service, model_id, empty_array,
                          "Пустой массив для " + model_id);
             
@@ -183,9 +195,8 @@ int main() {
             
             // Тест 5: Запрос без обязательных полей
             InferenceRequest invalid_request;
-            invalid_request.data = {
-                {"some_other_field", "value"}
-            };
+            invalid_request.model_id = "";
+            invalid_request.input = {1, 2, 3};
             std::cout << "\n🧪 Тест: Запрос без model_id\n";
             InferenceResponse invalid_response = inference_service.infer(invalid_request);
             if (!invalid_response.success) {
@@ -194,8 +205,8 @@ int main() {
                 std::cout << "  ❌ Ошибка не была обнаружена!\n";
             }
             
-            // Исправлено: Тест 6 - большой массив
-            json large_array = json::array();
+            // Тест 6 - большой массив
+            std::vector<int> large_array;
             for (int i = 100; i > 0; --i) {
                 large_array.push_back(i);
             }

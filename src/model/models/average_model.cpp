@@ -6,18 +6,20 @@ InferenceResponse
 AverageModel::infer(
     const InferenceRequest& request)
 {
-    auto data =
-        request.data.get<std::vector<int>>();
+    const auto& data = request.input;
 
     double sum = 0;
 
     for (auto x : data)
         sum += x;
 
+    double avg = data.empty() ? 0.0 : sum / data.size();
+
     return
     {
         true,
-        sum / data.size(),
+        {},
+        avg,
         ""
     };
 }

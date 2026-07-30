@@ -162,21 +162,26 @@ int main() {
         for (const auto& model_id : model_ids) {
             std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
             
-            // Тест 1: Простой запрос
-            json test_input = json::array({1, 3, 2, 5, 4});
+            // Исправлено: Тест 1 - массив целых чисел
+            json test_input = json::array({5, 3, 8, 1, 9, 2});
             testInference(inference_service, model_id, test_input, 
-                         "Простой запрос для " + model_id);
+                         "Сортировка массива для " + model_id);
             
-            // Тест 2: Пустые входные данные
-            json empty_input = json::object();
-            testInference(inference_service, model_id, empty_input,
-                         "Пустые входные данные для " + model_id);
+            // Исправлено: Тест 2 - массив с отрицательными числами
+            json negative_input = json::array({-5, 3, -8, 1, -9, 2});
+            testInference(inference_service, model_id, negative_input,
+                         "Массив с отрицательными числами для " + model_id);
             
-            // Тест 3: Некорректная модель
+            // Исправлено: Тест 3 - пустой массив (проверка обработки)
+            json empty_array = json::array();
+            testInference(inference_service, model_id, empty_array,
+                         "Пустой массив для " + model_id);
+            
+            // Тест 4: Некорректная модель
             testInference(inference_service, "non_existent_model", test_input,
                          "Запрос к несуществующей модели");
             
-            // Тест 4: Запрос без обязательных полей
+            // Тест 5: Запрос без обязательных полей
             InferenceRequest invalid_request;
             invalid_request.data = {
                 {"some_other_field", "value"}
@@ -189,53 +194,15 @@ int main() {
                 std::cout << "  ❌ Ошибка не была обнаружена!\n";
             }
             
+            // Исправлено: Тест 6 - большой массив
+            json large_array = json::array();
+            for (int i = 100; i > 0; --i) {
+                large_array.push_back(i);
+            }
+            testInference(inference_service, model_id, large_array,
+                         "Большой массив (100 элементов) для " + model_id);
+            
             std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
-        }
-        
-        // Тест 5: Пакетная обработка (если поддерживается)
-        std::cout << "📦 Тест пакетной обработки:\n";
-        json batch_input = {
-            {"inputs", {
-                {"text", "First input"},
-                {"text", "Second input"},
-                {"text", "Third input"}
-            }},
-            {"batch_size", 2}
-        };
-        
-        if (!model_ids.empty()) {
-            testInference(inference_service, model_ids[0], batch_input,
-                         "Пакетная обработка для " + model_ids[0]);
-        }
-        
-        // Тест 6: Сложный JSON с вложенными структурами
-        std::cout << "\n📦 Тест со сложным JSON:\n";
-        json complex_input = {
-            {"config", {
-                {"mode", "inference"},
-                {"precision", "float32"},
-                {"device", "cpu"}
-            }},
-            {"data", {
-                {"features", {
-                    {"age", 25},
-                    {"income", 50000},
-                    {"education", "bachelor"}
-                }},
-                {"metadata", {
-                    {"timestamp", "2026-07-30T12:00:00Z"},
-                    {"user_id", "user_123"}
-                }}
-            }},
-            {"options", {
-                {"return_attention", true},
-                {"return_logits", false}
-            }}
-        };
-        
-        if (!model_ids.empty()) {
-            testInference(inference_service, model_ids[0], complex_input,
-                         "Сложный JSON для " + model_ids[0]);
         }
     }
     

@@ -163,13 +163,7 @@ int main() {
             std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
             
             // Тест 1: Простой запрос
-            json test_input = {
-                {"text", "Hello, world!"},
-                {"params", {
-                    {"temperature", 0.7},
-                    {"max_tokens", 50}
-                }}
-            };
+            json test_input = json::array({1, 3, 2, 5, 4});
             testInference(inference_service, model_id, test_input, 
                          "Простой запрос для " + model_id);
             

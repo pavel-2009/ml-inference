@@ -23,6 +23,7 @@ set(PROJECT_SOURCES
     src/threadpool/task_queue.cpp
     src/threadpool/threadpool.cpp
     src/async-loader/async-loader.cpp
+    src/inference-service/inference-service.cpp
 )
 
 # Create executable (СНАЧАЛА создаём таргет)
@@ -34,10 +35,12 @@ target_include_directories(ml_inference PRIVATE
     ${PROJECT_SOURCE_DIR}/include/async-loader
     ${PROJECT_SOURCE_DIR}/include/threadpool
     ${PROJECT_SOURCE_DIR}/include/model
+    ${PROJECT_SOURCE_DIR}/include/inference-service
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/async-loader
     ${PROJECT_SOURCE_DIR}/src/threadpool
     ${PROJECT_SOURCE_DIR}/src/model
+    ${PROJECT_SOURCE_DIR}/src/inference-service
 )
 
 # Link libraries

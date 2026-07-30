@@ -1,9 +1,9 @@
 #include "async-loader/async-loader.hpp"
 #include "async-loader/model-task.hpp"
 #include "threadpool/threadpool.hpp"
-#include "models/model_factory.hpp"
-#include "models/model_manager.hpp"
-#include "models/imodel.hpp"
+#include "model/model_factory.hpp"
+#include "model/model_manager.hpp"
+#include "model/imodel.hpp"
 
 #include <nlohmann/json.hpp>
 #include <fstream>

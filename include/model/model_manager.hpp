@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base_model.hpp"
+#include "model/models/base_model.hpp"
 
 #include <shared_mutex>
 #include <unordered_map>

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "threadpool.hpp"
-#include "model_factory.hpp"
-#include "models/average_model.hpp"
-#include "model_info.hpp"
+#include "model/model_factory.hpp"
+#include "model/models/average_model.hpp"
+#include "model/model_info.hpp"
+#include "model/model_manager.hpp"
 
 #include <filesystem>
 #include <string>

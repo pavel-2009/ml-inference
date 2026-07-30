@@ -1,7 +1,7 @@
 #include "model_factory.hpp"
-#include "average_model.hpp"
-#include "sort_model.hpp"
-#include "sum_model.hpp"
+#include "models/average_model.hpp"
+#include "models/sort_model.hpp"
+#include "models/sum_model.hpp"
 
 #include <stdexcept>
 

@@ -1,9 +1,9 @@
 #include "async-loader/async-loader.hpp"
 #include "threadpool/task_queue.hpp"
 #include "threadpool/threadpool.hpp"
-#include "models/model_factory.hpp"
-#include "models/model_manager.hpp"
-#include "models/model_info.hpp"
+#include "model/model_factory.hpp"
+#include "model/model_manager.hpp"
+#include "model/model_info.hpp"
 
 #include <nlohmann/json.hpp>
 #include <filesystem>

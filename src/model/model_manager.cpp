@@ -1,4 +1,4 @@
-#include "models/model_manager.hpp"
+#include "model/model_manager.hpp"
 
 #include <stdexcept>
 #include <mutex>

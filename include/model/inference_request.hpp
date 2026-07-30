@@ -1,10 +1,10 @@
 #pragma once
 
-#include <nlohmann/json.hpp>
-
-using json = nlohmann::json;
+#include <string>
+#include <vector>
 
 struct InferenceRequest
 {
-    json data;
+    std::string model_id;
+    std::vector<int> input;
 };

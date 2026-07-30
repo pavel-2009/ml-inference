@@ -1,15 +1,15 @@
 #pragma once
 
-#include <nlohmann/json.hpp>
 #include <string>
-
-using json = nlohmann::json;
+#include <vector>
 
 struct InferenceResponse
 {
     bool success = true;
 
-    json result;
+    std::vector<int> result_int;
+    
+    double result_double = 0.0;
 
     std::string error;
 };

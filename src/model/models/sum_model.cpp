@@ -6,10 +6,9 @@ InferenceResponse
 SumModel::infer(
     const InferenceRequest& request)
 {
-    auto data =
-        request.data.get<std::vector<int>>();
+    const auto& data = request.input;
 
-    int sum = 0;
+    double sum = 0;
 
     for (auto x : data)
         sum += x;
@@ -17,6 +16,7 @@ SumModel::infer(
     return
     {
         true,
+        {},
         sum,
         ""
     };

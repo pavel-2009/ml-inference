@@ -4,6 +4,7 @@
 #include "model/model_factory.hpp"
 #include "model/model_manager.hpp"
 #include "model/model_info.hpp"
+#include "inference-service/inference-service.hpp"
 
 #include <nlohmann/json.hpp>
 #include <filesystem>

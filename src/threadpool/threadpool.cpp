@@ -15,6 +15,8 @@ void ThreadPool::stop() noexcept {
 }
 
 void ThreadPool::worker_loop() {
+    std::cout << "🟢 Worker thread started" << std::endl;
+
     while (!stop_flag_) {
         std::unique_ptr<BaseTask> task;
         
@@ -29,12 +31,14 @@ void ThreadPool::worker_loop() {
                 break;
             }
 
-            task = tasks_.pop_no_wait();
+            task = tasks_.pop();
         }
 
         if (!task) {
             continue;
         }
+
+        std::cout << "⚡ Executing task..." << std::endl;
 
         try {
             task->execute();
@@ -50,6 +54,8 @@ void ThreadPool::worker_loop() {
             cv_.notify_all();
         }
     }
+
+    std::cout << "🔴 Worker thread stopped" << std::endl;
 }
 
 ThreadPool::ThreadPool(size_t num_threads, TaskQueue& task_queue)
@@ -74,11 +80,14 @@ ThreadPool::~ThreadPool() {
 
 void ThreadPool::enqueue(std::unique_ptr<BaseTask> task) {
     if (!task) {
+        std::cout << "⚠️ enqueue: task is null" << std::endl;
         return;
     }
     
-    ++active_tasks_;
+    std::cout << "📥 enqueue: adding task, active_tasks=" << active_tasks_.load() << std::endl;
+    active_tasks_.fetch_add(1);
     tasks_.push(std::move(task));
+    std::cout << "✅ enqueue: task added, active_tasks=" << active_tasks_.load() << std::endl;
 }
 
 size_t ThreadPool::size() const {
@@ -88,6 +97,7 @@ size_t ThreadPool::size() const {
 void ThreadPool::wait() {
     std::unique_lock lock(cv_mutex_);
     cv_.wait(lock, [this] {
+        std::cout << "Waiting... active_tasks=" << active_tasks_ << std::endl;
         return active_tasks_ == 0;
     });
 }

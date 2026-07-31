@@ -186,7 +186,7 @@ int main() {
             // Тест 5: Запрос без обязательных полей
             InferenceRequest invalid_request;
             invalid_request.model_id = "";
-            invalid_request.input = {1, 2, 3};
+            invalid_request.input = std::vector<int>{1, 2, 3};
             std::cout << "\n🧪 Тест: Запрос без model_id\n";
             InferenceResponse invalid_response = inference_service.infer(invalid_request);
             if (!invalid_response.success) {

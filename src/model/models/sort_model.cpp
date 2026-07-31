@@ -7,7 +7,16 @@ InferenceResponse
 SortModel::infer(
     const InferenceRequest& request)
 {
-    auto data = request.input;
+    if ((request.input.type() != typeid(std::vector<int>))) {
+        return {
+            false,
+            {},
+            0.0,
+            "Input must be vector<int>"
+        };
+    }
+
+    auto data = std::any_cast<std::vector<int>>(request.input);
 
     std::sort(
         data.begin(),

@@ -2,9 +2,10 @@
 
 #include <string>
 #include <vector>
+#include <any>
 
 struct InferenceRequest
 {
     std::string model_id;
-    std::vector<int> input;
+    std::any input;
 };

@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+
 InferenceService::InferenceService(ModelManager& manager)
     : manager_(manager) {}
 
@@ -32,12 +33,26 @@ InferenceResponse InferenceService::infer(const InferenceRequest& request) {
             return response;
         }
 
-        response = model->infer(request);
+        try {
+            response = model->infer(request);
+        } catch (const std::exception& e) {
+            response.success = false;
+            response.error = std::string("Inference error: ") + e.what();
+            std::cerr << "Inference error: " << e.what() << std::endl;
+        } catch (...) {
+            response.success = false;
+            response.error = "Unknown inference error";
+            std::cerr << "Unknown inference error for model: " << model_id << std::endl;
+        }
         
     } catch (const std::exception& e) {
         response.success = false;
         response.error = std::string("Inference error: ") + e.what();
         std::cerr << "Inference error: " << e.what() << std::endl;
+    } catch (...) {
+        response.success = false;
+        response.error = "Unknown inference error";
+        std::cerr << "Unknown inference error" << std::endl;
     }
     
     return response;

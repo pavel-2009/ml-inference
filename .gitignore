@@ -2,29 +2,20 @@
 # Compiled and build artifacts
 *.o
 *.obj
-*.exe
-*.dll
-*.so
-*.a
 *.out
+build/
+dist/
 
 # Dependencies
 venv/
 .venv/
 __pycache__/
-.mypy_cache/
-.pytest_cache/
-node_modules/
-dist/
-build/
-target/
-.gradle/
+*.egg-info/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
-*.swo
 
 # Environment
 .env
@@ -34,17 +25,15 @@ target/
 # Editors
 .vscode/
 .idea/
-
-# System files
-.DS_Store
-Thumbs.db
+*.swp
+*.swo
 
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
-# Compressed files
+# Compression
 *.zip
 *.gz
 *.tar

@@ -2,7 +2,6 @@
 
 #include "threadpool.hpp"
 #include "model/model_factory.hpp"
-#include "model/models/average_model.hpp"
 #include "model/model_info.hpp"
 #include "model/model_manager.hpp"
 
@@ -18,7 +17,7 @@ class AsyncLoader {
         std::filesystem::path models_dir_;
 
     public:
-        AsyncLoader(
+        explicit AsyncLoader(
             ThreadPool& pool,
             ModelFactory& factory,
             ModelManager& manager,
@@ -30,4 +29,6 @@ class AsyncLoader {
         void loadModel(const std::filesystem::path& file);
 
         void loadAll();
+
+        void wait();
 };

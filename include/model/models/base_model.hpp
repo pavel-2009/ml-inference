@@ -15,6 +15,16 @@ public:
     void load() override
     {
         loaded_ = true;
+        try {
+            loadImpl();
+        } catch (...) {
+            loaded_ = false;
+            throw;
+        }
+    }
+
+    virtual void loadImpl()
+    {
     }
 
     void unload() override

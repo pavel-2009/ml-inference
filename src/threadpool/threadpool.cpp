@@ -16,30 +16,14 @@ void ThreadPool::stop() noexcept {
 
 void ThreadPool::worker_loop() {
     std::cout << "🟢 Worker thread started" << std::endl;
-
+    
     while (!stop_flag_) {
-        std::unique_ptr<BaseTask> task;
+        std::cout << "⏳ Worker waiting for task..." << std::endl;  
+        auto task = tasks_.pop();
+        std::cout << "✅ Worker got task!" << std::endl; 
         
-        {
-            std::unique_lock lock(cv_mutex_);
-
-            cv_.wait(lock, [this]{
-                return stop_flag_ || !tasks_.empty();
-            });
-
-            if (stop_flag_ && tasks_.empty()) {
-                break;
-            }
-
-            task = tasks_.pop();
-        }
-
-        if (!task) {
-            continue;
-        }
-
-        std::cout << "⚡ Executing task..." << std::endl;
-
+        if (!task) continue;
+        
         try {
             task->execute();
         } catch (const std::exception& e) {
@@ -48,13 +32,13 @@ void ThreadPool::worker_loop() {
             std::cerr << "Unknown task execution error" << std::endl;
         }
 
-        --active_tasks_;
+        active_tasks_.fetch_sub(1);
 
-        if (active_tasks_ == 0) {
+        if (active_tasks_.load() == 0) {
             cv_.notify_all();
         }
     }
-
+    
     std::cout << "🔴 Worker thread stopped" << std::endl;
 }
 

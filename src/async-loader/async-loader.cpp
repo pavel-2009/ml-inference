@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <chrono>
+#include <mutex>
 
 using nlohmann::json;
 
@@ -143,11 +144,17 @@ void AsyncLoader::loadModel(const std::filesystem::path& file) {
     } catch (const std::exception& e) {
         std::cerr << "Loading failed: " << config.id << " - " << e.what() << '\n';
         return;
+    } catch (...) {
+        std::cerr << "Loading failed: " << config.id << " - Unknown error\n";
+        return;
     }
 
-    model->load();
-
-    manager_.add(config.id, model);
+    try {
+        manager_.add(config.id, model);
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to add model: " << config.id << " - " << e.what() << '\n';
+        return;
+    }
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -165,4 +172,8 @@ void AsyncLoader::loadAll() {
     } catch (const std::exception& e) {
         std::cerr << "❌ Ошибка при обходе директории: " << e.what() << '\n';
     }
+}
+
+void AsyncLoader::wait() {
+    pool_.wait();
 }

@@ -11,30 +11,43 @@ void ThreadPool::stop() noexcept {
         std::lock_guard<std::mutex> lock(cv_mutex_);
     }
     cv_.notify_all();
+    tasks_.notify();
 }
 
 void ThreadPool::worker_loop() {
-    while (true) {
+    while (!stop_flag_) {
         std::unique_ptr<BaseTask> task;
         
         {
             std::unique_lock lock(cv_mutex_);
 
-            cv_.wait(lock, [&]{
-                return active_tasks_ == 0;
+            cv_.wait(lock, [this]{
+                return stop_flag_ || !tasks_.empty();
             });
 
-            auto task = tasks_.pop();
-
-            if (!task) continue;
-
-            task->execute();
-
-            --active_tasks_;
-
-            if (active_tasks_ == 0) {
-                cv_.notify_all();
+            if (stop_flag_ && tasks_.empty()) {
+                break;
             }
+
+            task = tasks_.pop_no_wait();
+        }
+
+        if (!task) {
+            continue;
+        }
+
+        try {
+            task->execute();
+        } catch (const std::exception& e) {
+            std::cerr << "Task execution error: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown task execution error" << std::endl;
+        }
+
+        --active_tasks_;
+
+        if (active_tasks_ == 0) {
+            cv_.notify_all();
         }
     }
 }
@@ -64,10 +77,17 @@ void ThreadPool::enqueue(std::unique_ptr<BaseTask> task) {
         return;
     }
     
-    tasks_.push(std::move(task));
     ++active_tasks_;
+    tasks_.push(std::move(task));
 }
 
 size_t ThreadPool::size() const {
     return workers_.size();
+}
+
+void ThreadPool::wait() {
+    std::unique_lock lock(cv_mutex_);
+    cv_.wait(lock, [this] {
+        return active_tasks_ == 0;
+    });
 }

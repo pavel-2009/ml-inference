@@ -12,7 +12,7 @@ std::shared_ptr<IModel> ModelManager::get(const std::string& id) const {
         return it->second;
     }
     
-    throw std::runtime_error("Model not found: " + id);
+    return nullptr;
 }
 
 bool ModelManager::contains(const std::string& id) const {
@@ -22,6 +22,9 @@ bool ModelManager::contains(const std::string& id) const {
 
 void ModelManager::add(const std::string& id, std::shared_ptr<IModel> model) {
     std::unique_lock lock(mutex_);
+    if (models_.contains(id)) {
+        throw std::runtime_error("Model with id already exists: " + id);
+    }
     models_.emplace(id, std::move(model));
 }
 

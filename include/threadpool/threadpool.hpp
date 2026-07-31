@@ -38,4 +38,6 @@ class ThreadPool {
         void enqueue(std::unique_ptr<BaseTask> task);
 
         size_t size() const;
+
+        void wait();
 };

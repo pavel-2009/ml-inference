@@ -125,21 +125,11 @@ int main() {
     
     try {
         loader.loadAll();
+        loader.wait();  // Ждем завершения всех задач загрузки
         std::cout << "✅ loadAll() выполнен\n";
     } catch (const std::exception& e) {
         std::cerr << "❌ Ошибка в loadAll(): " << e.what() << '\n';
     }
-    
-    std::cout << "----------------------------------------\n";
-    
-    // 6. Ждём завершения задач
-    std::cout << "\n⏳ Ожидание завершения загрузки моделей (5 сек)...\n";
-    for (int i = 5; i > 0; --i) {
-        std::cout << "  " << i << "...\r";
-        std::cout.flush();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-    std::cout << "  ✅ Загрузка завершена!          \n\n";
     
     // ============================================
     // 7. ТЕСТИРОВАНИЕ INFERENCE SERVICE

@@ -4,6 +4,7 @@
 
 #include <queue>
 #include <mutex>
+#include <condition_variable>
 #include <memory>
 
 
@@ -11,6 +12,7 @@ class TaskQueue {
     private:
         std::queue<std::unique_ptr<BaseTask>> tasks_;
         mutable std::mutex mutex_;
+        std::condition_variable cv_;
 
     public:
         TaskQueue() = default;
@@ -26,4 +28,6 @@ class TaskQueue {
 
         size_t size() const;
         bool empty() const;
+
+        void notify();
 };

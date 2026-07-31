@@ -1,0 +1,9 @@
+{
+    "id": "sum",
+    "type": "sum",
+    "name": "Sum Model",
+    "version": "1.0",
+    "author": "Pavel",
+    "description": "Calculate sum of integer array",
+    "enabled": true
+}

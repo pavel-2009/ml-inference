@@ -13,6 +13,7 @@
 #include <thread>
 #include <chrono>
 #include <iomanip>
+#include <any>
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -32,6 +33,44 @@ void printModelInfo(const ModelInfo& info, const std::string& prefix = "  ") {
 // Вспомогательная функция для тестирования inference
 void testInference(InferenceService& service, const std::string& model_id, const std::vector<int>& input, 
                    const std::string& test_name = "") {
+    if (!test_name.empty()) {
+        std::cout << "\n🧪 Тест: " << test_name << "\n";
+    }
+    
+    InferenceRequest request;
+    request.model_id = model_id;
+    request.input = input;
+    
+    std::cout << "  📤 Отправка запроса для модели '" << model_id << "'\n";
+    std::cout << "  📥 Входные данные: [";
+    for (size_t i = 0; i < input.size(); ++i) {
+        if (i > 0) std::cout << ", ";
+        std::cout << input[i];
+    }
+    std::cout << "]\n";
+    
+    InferenceResponse response = service.infer(request);
+    
+    if (response.success) {
+        std::cout << "  ✅ Успешно!\n";
+        if (!response.result_int.empty()) {
+            std::cout << "  📤 Результат (int): [";
+            for (size_t i = 0; i < response.result_int.size(); ++i) {
+                if (i > 0) std::cout << ", ";
+                std::cout << response.result_int[i];
+            }
+            std::cout << "]\n";
+        } else {
+            std::cout << "  📤 Результат (double): " << response.result_double << '\n';
+        }
+    } else {
+        std::cout << "  ❌ Ошибка: " << response.error << '\n';
+    }
+}
+
+// Специализированная функция для тестирования моделей с double результатом
+void testInferenceDouble(InferenceService& service, const std::string& model_id, 
+                         const std::vector<int>& input, const std::string& test_name = "") {
     if (!test_name.empty()) {
         std::cout << "\n🧪 Тест: " << test_name << "\n";
     }
@@ -119,22 +158,22 @@ int main() {
         std::cerr << "❌ Ошибка readConfig: " << e.what() << "\n\n";
     }
     
-    // 5. Загружаем все модели с подробным выводом
+    // 5. Загружаем все модели
     std::cout << "⏳ Загрузка моделей...\n";
     std::cout << "----------------------------------------\n";
     
     try {
         loader.loadAll();
-        loader.wait();  // Ждем завершения всех задач загрузки
+        loader.wait();
         std::cout << "✅ loadAll() выполнен\n";
     } catch (const std::exception& e) {
         std::cerr << "❌ Ошибка в loadAll(): " << e.what() << '\n';
     }
     
     // ============================================
-    // 7. ТЕСТИРОВАНИЕ INFERENCE SERVICE
+    // ТЕСТИРОВАНИЕ INFERENCE SERVICE ДЛЯ ВСЕХ МОДЕЛЕЙ
     // ============================================
-    std::cout << "=========================================\n";
+    std::cout << "\n=========================================\n";
     std::cout << "🧪 ТЕСТИРОВАНИЕ INFERENCE SERVICE\n";
     std::cout << "=========================================\n\n";
     
@@ -163,27 +202,102 @@ int main() {
         // Тестируем каждую модель
         for (const auto& model_id : model_ids) {
             std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+            std::cout << "🔍 Тестирование модели: " << model_id << "\n";
+            std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
             
-            // Тест 1 - массив целых чисел
+            // Определяем тип модели по имени
+            bool is_sort = (model_id == "sort");
+            bool is_sum = (model_id == "sum");
+            bool is_average = (model_id == "average");
+            
+            // Базовые тестовые данные
             std::vector<int> test_input = {5, 3, 8, 1, 9, 2};
-            testInference(inference_service, model_id, test_input, 
-                         "Сортировка массива для " + model_id);
-            
-            // Тест 2 - массив с отрицательными числами
             std::vector<int> negative_input = {-5, 3, -8, 1, -9, 2};
-            testInference(inference_service, model_id, negative_input,
-                         "Массив с отрицательными числами для " + model_id);
-            
-            // Тест 3 - пустой массив (проверка обработки)
             std::vector<int> empty_array = {};
-            testInference(inference_service, model_id, empty_array,
-                         "Пустой массив для " + model_id);
+            std::vector<int> single_element = {42};
+            std::vector<int> all_zeros = {0, 0, 0, 0, 0};
             
-            // Тест 4: Некорректная модель
+            // Тест 1: Обычный массив
+            if (is_sort) {
+                testInference(inference_service, model_id, test_input, 
+                             "Сортировка массива");
+            } else if (is_sum) {
+                testInferenceDouble(inference_service, model_id, test_input,
+                                   "Сумма массива");
+            } else if (is_average) {
+                testInferenceDouble(inference_service, model_id, test_input,
+                                   "Среднее значение массива");
+            }
+            
+            // Тест 2: Массив с отрицательными числами
+            if (is_sort) {
+                testInference(inference_service, model_id, negative_input,
+                             "Сортировка массива с отрицательными числами");
+            } else if (is_sum) {
+                testInferenceDouble(inference_service, model_id, negative_input,
+                                   "Сумма массива с отрицательными числами");
+            } else if (is_average) {
+                testInferenceDouble(inference_service, model_id, negative_input,
+                                   "Среднее значение массива с отрицательными числами");
+            }
+            
+            // Тест 3: Пустой массив
+            if (is_sort) {
+                testInference(inference_service, model_id, empty_array,
+                             "Пустой массив");
+            } else if (is_sum) {
+                testInferenceDouble(inference_service, model_id, empty_array,
+                                   "Сумма пустого массива");
+            } else if (is_average) {
+                testInferenceDouble(inference_service, model_id, empty_array,
+                                   "Среднее значение пустого массива");
+            }
+            
+            // Тест 4: Массив с одним элементом
+            if (is_sort) {
+                testInference(inference_service, model_id, single_element,
+                             "Массив с одним элементом");
+            } else if (is_sum) {
+                testInferenceDouble(inference_service, model_id, single_element,
+                                   "Сумма массива с одним элементом");
+            } else if (is_average) {
+                testInferenceDouble(inference_service, model_id, single_element,
+                                   "Среднее значение массива с одним элементом");
+            }
+            
+            // Тест 5: Все нули
+            if (is_sort) {
+                testInference(inference_service, model_id, all_zeros,
+                             "Массив из нулей");
+            } else if (is_sum) {
+                testInferenceDouble(inference_service, model_id, all_zeros,
+                                   "Сумма массива из нулей");
+            } else if (is_average) {
+                testInferenceDouble(inference_service, model_id, all_zeros,
+                                   "Среднее значение массива из нулей");
+            }
+            
+            // Тест 6: Большой массив (100 элементов)
+            std::vector<int> large_array;
+            for (int i = 100; i > 0; --i) {
+                large_array.push_back(i);
+            }
+            if (is_sort) {
+                testInference(inference_service, model_id, large_array,
+                             "Большой массив (100 элементов)");
+            } else if (is_sum) {
+                testInferenceDouble(inference_service, model_id, large_array,
+                                   "Сумма большого массива (100 элементов)");
+            } else if (is_average) {
+                testInferenceDouble(inference_service, model_id, large_array,
+                                   "Среднее значение большого массива (100 элементов)");
+            }
+            
+            // Тест 7: Некорректная модель (для всех типов)
             testInference(inference_service, "non_existent_model", test_input,
                          "Запрос к несуществующей модели");
             
-            // Тест 5: Запрос без обязательных полей
+            // Тест 8: Запрос без model_id
             InferenceRequest invalid_request;
             invalid_request.model_id = "";
             invalid_request.input = std::vector<int>{1, 2, 3};
@@ -195,13 +309,19 @@ int main() {
                 std::cout << "  ❌ Ошибка не была обнаружена!\n";
             }
             
-            // Тест 6 - большой массив
-            std::vector<int> large_array;
-            for (int i = 100; i > 0; --i) {
-                large_array.push_back(i);
+            // Тест 9: Некорректный тип входных данных (только для Sum и Average)
+            if (is_sum || is_average) {
+                std::cout << "\n🧪 Тест: Некорректный тип входных данных\n";
+                InferenceRequest invalid_type_request;
+                invalid_type_request.model_id = model_id;
+                invalid_type_request.input = std::string("неправильный тип");
+                InferenceResponse invalid_type_response = inference_service.infer(invalid_type_request);
+                if (!invalid_type_response.success) {
+                    std::cout << "  ✅ Ошибка корректно обработана: " << invalid_type_response.error << '\n';
+                } else {
+                    std::cout << "  ❌ Ошибка не была обнаружена!\n";
+                }
             }
-            testInference(inference_service, model_id, large_array,
-                         "Большой массив (100 элементов) для " + model_id);
             
             std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
         }

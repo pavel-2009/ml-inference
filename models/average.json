@@ -1,0 +1,9 @@
+{
+    "id": "average",
+    "type": "average",
+    "name": "Average Model",
+    "version": "1.0",
+    "author": "Pavel",
+    "description": "Calculate average of integer array",
+    "enabled": true
+}

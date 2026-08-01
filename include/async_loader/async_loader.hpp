@@ -1,6 +1,6 @@
 #pragma once
 
-#include "threadpool.hpp"
+#include "threadpool/threadpool.hpp"
 #include "model/model_factory.hpp"
 #include "model/model_info.hpp"
 #include "model/model_manager.hpp"

@@ -1,5 +1,5 @@
-#include "async-loader/async-loader.hpp"
-#include "async-loader/model-task.hpp"
+#include "async_loader/async_loader.hpp"
+#include "async_loader/model_task.hpp"
 #include "threadpool/threadpool.hpp"
 #include "model/model_factory.hpp"
 #include "model/model_manager.hpp"

@@ -185,10 +185,10 @@ int main() {
                 testInference(inference_service, model_id, test_input, 
                              "Сортировка массива");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, test_input,
+                testInference(inference_service, model_id, test_input,
                                    "Сумма массива");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, test_input,
+                testInference(inference_service, model_id, test_input,
                                    "Среднее значение массива");
             }
             
@@ -336,7 +336,7 @@ int main() {
     infer_request.method = Method::Post;
     InferenceRequest inf_req;
     inf_req.model_id = "sum";
-    inf_req.input = {1, 2, 3, 4, 5};
+    inf_req.input = std::vector<int>{1, 2, 3, 4, 5};
     infer_request.inference_request = inf_req;
     HttpResponse infer_response = router.route(infer_request);
     std::cout << "  Status: " << infer_response.status << ", Message: " << infer_response.message << '\n';
@@ -353,7 +353,7 @@ int main() {
     invalid_infer_request.method = Method::Post;
     InferenceRequest invalid_inf_req;
     invalid_inf_req.model_id = "non_existent";
-    invalid_inf_req.input = {1, 2, 3};
+    invalid_inf_req.input = std::vector<int>{1, 2, 3};
     invalid_infer_request.inference_request = invalid_inf_req;
     HttpResponse invalid_infer_response = router.route(invalid_infer_request);
     std::cout << "  Status: " << invalid_infer_response.status << ", Message: " << invalid_infer_response.message << '\n';

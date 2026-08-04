@@ -12,5 +12,5 @@ class InferenceService {
     public:
         explicit InferenceService(ModelManager& manager);
 
-        InferenceResponse infer(const InferenceRequest& request);
+        InferenceResponse infer(const std::optional<InferenceRequest>& request);
 };

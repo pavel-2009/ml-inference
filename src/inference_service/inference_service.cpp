@@ -7,7 +7,7 @@ InferenceService::InferenceService(ModelManager& manager)
     : manager_(manager) {}
 
 
-InferenceResponse InferenceService::infer(const InferenceRequest& request) {
+InferenceResponse InferenceService::infer(const std::optional<InferenceRequest>& request) {
     InferenceResponse response;
     
     try {

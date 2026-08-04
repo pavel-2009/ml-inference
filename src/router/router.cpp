@@ -1,6 +1,4 @@
 #include "router/router.hpp"
-#include "router/http_request.hpp"
-#include "router/http_response.hpp"
 #include "inference_service/inference_service.hpp"
 
 #include <iostream>
@@ -29,7 +27,6 @@ HttpResponse Router::route(const HttpRequest& request) {
 
 
 HttpResponse Router::infer(const HttpRequest& request) {
-
     HttpResponse response;
 
     std::optional<InferenceRequest> inference_request = request.inference_request;
@@ -38,7 +35,7 @@ HttpResponse Router::infer(const HttpRequest& request) {
         response.status = 400;
         response.message = "Invalid input";
         return response;
-    };
+    }
 
     try
     {
@@ -50,7 +47,6 @@ HttpResponse Router::infer(const HttpRequest& request) {
 
         return response;
     }
-
     catch(const std::exception& e)
     {
         std::string error_msg = e.what();

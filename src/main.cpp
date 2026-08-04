@@ -294,5 +294,92 @@ int main() {
     std::cout << "✅ Тестирование завершено!\n";
     std::cout << "=========================================\n";
     
+    // ============================================
+    // ТЕСТИРОВАНИЕ ROUTER
+    // ============================================
+    std::cout << "\n=========================================\n";
+    std::cout << "🧪 ТЕСТИРОВАНИЕ ROUTER\n";
+    std::cout << "=========================================\n\n";
+    
+    Router router(inference_service);
+    
+    // Тест 1: Health endpoint
+    std::cout << "🔍 Тест: Health endpoint\n";
+    HttpRequest health_request;
+    health_request.endpoint = Endpoint::Health;
+    health_request.method = Method::Get;
+    HttpResponse health_response = router.route(health_request);
+    std::cout << "  Status: " << health_response.status << ", Message: " << health_response.message << '\n';
+    if (health_response.status == 200) {
+        std::cout << "  ✅ Health check passed\n";
+    } else {
+        std::cout << "  ❌ Health check failed\n";
+    }
+    
+    // Тест 2: Models endpoint
+    std::cout << "\n🔍 Тест: Models endpoint\n";
+    HttpRequest models_request;
+    models_request.endpoint = Endpoint::Models;
+    models_request.method = Method::Get;
+    HttpResponse models_response = router.route(models_request);
+    std::cout << "  Status: " << models_response.status << ", Message: " << models_response.message << '\n';
+    if (models_response.status == 200) {
+        std::cout << "  ✅ Models list retrieved successfully\n";
+    } else {
+        std::cout << "  ❌ Failed to retrieve models list\n";
+    }
+    
+    // Тест 3: Infer endpoint с валидным запросом
+    std::cout << "\n🔍 Тест: Infer endpoint (валидный запрос)\n";
+    HttpRequest infer_request;
+    infer_request.endpoint = Endpoint::Infer;
+    infer_request.method = Method::Post;
+    InferenceRequest inf_req;
+    inf_req.model_id = "sum";
+    inf_req.input = {1, 2, 3, 4, 5};
+    infer_request.inference_request = inf_req;
+    HttpResponse infer_response = router.route(infer_request);
+    std::cout << "  Status: " << infer_response.status << ", Message: " << infer_response.message << '\n';
+    if (infer_response.status == 200 && infer_response.inference_response) {
+        std::cout << "  ✅ Infer request succeeded\n";
+    } else {
+        std::cout << "  ❌ Infer request failed\n";
+    }
+    
+    // Тест 4: Infer endpoint с невалидным model_id
+    std::cout << "\n🔍 Тест: Infer endpoint (невалидный model_id)\n";
+    HttpRequest invalid_infer_request;
+    invalid_infer_request.endpoint = Endpoint::Infer;
+    invalid_infer_request.method = Method::Post;
+    InferenceRequest invalid_inf_req;
+    invalid_inf_req.model_id = "non_existent";
+    invalid_inf_req.input = {1, 2, 3};
+    invalid_infer_request.inference_request = invalid_inf_req;
+    HttpResponse invalid_infer_response = router.route(invalid_infer_request);
+    std::cout << "  Status: " << invalid_infer_response.status << ", Message: " << invalid_infer_response.message << '\n';
+    if (invalid_infer_response.status != 200) {
+        std::cout << "  ✅ Error correctly handled\n";
+    } else {
+        std::cout << "  ❌ Error not detected\n";
+    }
+    
+    // Тест 5: Infer endpoint без inference_request
+    std::cout << "\n🔍 Тест: Infer endpoint (отсутствие inference_request)\n";
+    HttpRequest missing_request;
+    missing_request.endpoint = Endpoint::Infer;
+    missing_request.method = Method::Post;
+    missing_request.inference_request = std::nullopt;
+    HttpResponse missing_response = router.route(missing_request);
+    std::cout << "  Status: " << missing_response.status << ", Message: " << missing_response.message << '\n';
+    if (missing_response.status == 400) {
+        std::cout << "  ✅ Missing request correctly handled\n";
+    } else {
+        std::cout << "  ❌ Missing request not detected\n";
+    }
+    
+    std::cout << "\n=========================================\n";
+    std::cout << "✅ Тестирование Router завершено!\n";
+    std::cout << "=========================================\n";
+    
     return 0;
 }

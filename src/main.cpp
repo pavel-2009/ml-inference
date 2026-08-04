@@ -196,10 +196,10 @@ int main() {
                 testInference(inference_service, model_id, negative_input,
                              "Сортировка массива с отрицательными числами");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, negative_input,
+                testInference(inference_service, model_id, negative_input,
                                    "Сумма массива с отрицательными числами");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, negative_input,
+                testInference(inference_service, model_id, negative_input,
                                    "Среднее значение массива с отрицательными числами");
             }
             
@@ -208,10 +208,10 @@ int main() {
                 testInference(inference_service, model_id, empty_array,
                              "Пустой массив");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, empty_array,
+                testInference(inference_service, model_id, empty_array,
                                    "Сумма пустого массива");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, empty_array,
+                testInference(inference_service, model_id, empty_array,
                                    "Среднее значение пустого массива");
             }
             
@@ -220,10 +220,10 @@ int main() {
                 testInference(inference_service, model_id, single_element,
                              "Массив с одним элементом");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, single_element,
+                testInference(inference_service, model_id, single_element,
                                    "Сумма массива с одним элементом");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, single_element,
+                testInference(inference_service, model_id, single_element,
                                    "Среднее значение массива с одним элементом");
             }
             
@@ -232,10 +232,10 @@ int main() {
                 testInference(inference_service, model_id, all_zeros,
                              "Массив из нулей");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, all_zeros,
+                testInference(inference_service, model_id, all_zeros,
                                    "Сумма массива из нулей");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, all_zeros,
+                testInference(inference_service, model_id, all_zeros,
                                    "Среднее значение массива из нулей");
             }
             
@@ -248,10 +248,10 @@ int main() {
                 testInference(inference_service, model_id, large_array,
                              "Большой массив (100 элементов)");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, large_array,
+                testInference(inference_service, model_id, large_array,
                                    "Сумма большого массива (100 элементов)");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, large_array,
+                testInference(inference_service, model_id, large_array,
                                    "Среднее значение большого массива (100 элементов)");
             }
             

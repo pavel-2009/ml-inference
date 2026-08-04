@@ -22,8 +22,9 @@ set(PROJECT_SOURCES
     src/model/models/sum_model.cpp
     src/threadpool/task_queue.cpp
     src/threadpool/threadpool.cpp
-    src/async-loader/async-loader.cpp
-    src/inference-service/inference-service.cpp
+    src/async_loader/async_loader.cpp
+    src/inference_service/inference_service.cpp
+    src/router/router.cpp
 )
 
 # Create executable (СНАЧАЛА создаём таргет)

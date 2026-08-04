@@ -1,10 +1,10 @@
 #pragma once
 
-#include "inference_service.hpp"
+#include "inference_service/inference_service.hpp"
 #include "http_request.hpp"
 #include "http_response.hpp"
-#include "inference_request.hpp"
-#include "inference_response.hpp"
+#include "model/inference_request.hpp"
+#include "model/inference_response.hpp"
 
 
 class Router {

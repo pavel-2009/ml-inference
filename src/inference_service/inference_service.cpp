@@ -11,13 +11,13 @@ InferenceResponse InferenceService::infer(const std::optional<InferenceRequest>&
     InferenceResponse response;
     
     try {
-        if (request.model_id.empty()) {
+        if (request->model_id.empty()) {
             response.success = false;
             response.error = "Missing required field: model_id";
             return response;
         }
 
-        std::string model_id = request.model_id;
+        std::string model_id = request->model_id;
         
         std::shared_ptr<IModel> model = manager_.get(model_id);
         

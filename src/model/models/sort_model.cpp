@@ -5,9 +5,9 @@
 
 InferenceResponse
 SortModel::infer(
-    const InferenceRequest& request)
+    const std::optional<InferenceRequest>& request)
 {
-    if ((request.input.type() != typeid(std::vector<int>))) {
+    if ((request->input.type() != typeid(std::vector<int>))) {
         return {
             false,
             {},
@@ -16,7 +16,7 @@ SortModel::infer(
         };
     }
 
-    auto data = std::any_cast<std::vector<int>>(request.input);
+    auto data = std::any_cast<std::vector<int>>(request->input);
 
     std::sort(
         data.begin(),

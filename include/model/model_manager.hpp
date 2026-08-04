@@ -1,11 +1,13 @@
 #pragma once
 
 #include "model/models/base_model.hpp"
+#include "model/model_info.hpp"
 
 #include <shared_mutex>
 #include <unordered_map>
 #include <string>
 #include <memory>
+#include <vector>
 
 
 class ModelManager {
@@ -24,4 +26,6 @@ class ModelManager {
         void remove(const std::string& id);
 
         void clear();
+
+        std::vector<ModelInfo> listModels() const;
 };

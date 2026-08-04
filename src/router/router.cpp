@@ -1,13 +1,13 @@
-#include "router.hpp"
-#include "http_request.hpp"
-#include "http_response.hpp"
-#include "inference_service.hpp"
+#include "router/router.hpp"
+#include "router/http_request.hpp"
+#include "router/http_response.hpp"
+#include "inference_service/inference_service.hpp"
 
 #include <iostream>
 
 
-explicit Router::Router(InferenceService& inference)
-    : inference_(inference) {};
+Router::Router(InferenceService& inference)
+    : inference_(inference) {}
 
 
 HttpResponse Router::route(const HttpRequest& request) {
@@ -58,6 +58,68 @@ HttpResponse Router::infer(const HttpRequest& request) {
 
         response.status = 404;
         response.message = std::format("Error while processing: {}", error_msg);
+        return response;
+    }
+}
+
+
+HttpResponse Router::health() {
+    HttpResponse response;
+    
+    bool healthy = inference_.health();
+    
+    if (healthy) {
+        response.status = 200;
+        response.message = "OK";
+    } else {
+        response.status = 503;
+        response.message = "Service Unavailable";
+    }
+    
+    return response;
+}
+
+
+HttpResponse Router::models() {
+    HttpResponse response;
+    
+    try {
+        auto models_list = inference_.models();
+        
+        response.status = 200;
+        response.message = "Success";
+        
+        // Build JSON-like response string with model info
+        std::string models_json = "[";
+        bool first = true;
+        for (const auto& model : models_list) {
+            if (!first) {
+                models_json += ",";
+            }
+            first = false;
+            models_json += "{";
+            models_json += "\"id\":\"" + model.id + "\",";
+            models_json += "\"type\":\"" + model.type + "\",";
+            models_json += "\"name\":\"" + model.name + "\",";
+            models_json += "\"version\":\"" + model.version + "\",";
+            models_json += "\"author\":\"" + model.author + "\",";
+            models_json += "\"description\":\"" + model.description + "\",";
+            models_json += "\"enabled\":" + std::string(model.enabled ? "true" : "false");
+            models_json += "}";
+        }
+        models_json += "]";
+        
+        response.message = models_json;
+        
+        return response;
+    }
+    catch (const std::exception& e)
+    {
+        std::string error_msg = e.what();
+        std::cerr << error_msg << '\n';
+        
+        response.status = 500;
+        response.message = std::format("Error retrieving models: {}", error_msg);
         return response;
     }
 }

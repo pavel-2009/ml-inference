@@ -37,3 +37,18 @@ void ModelManager::clear() {
     std::unique_lock lock(mutex_);
     models_.clear();
 }
+
+std::vector<ModelInfo> ModelManager::listModels() const {
+    std::shared_lock lock(mutex_);
+    
+    std::vector<ModelInfo> result;
+    result.reserve(models_.size());
+    
+    for (const auto& [id, model] : models_) {
+        if (model && model->ready()) {
+            result.push_back(model->config());
+        }
+    }
+    
+    return result;
+}

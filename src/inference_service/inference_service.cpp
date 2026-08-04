@@ -1,4 +1,4 @@
-#include "inference-service.hpp"
+#include "inference_service/inference_service.hpp"
 
 #include <iostream>
 
@@ -56,4 +56,15 @@ InferenceResponse InferenceService::infer(const std::optional<InferenceRequest>&
     }
     
     return response;
+}
+
+
+std::vector<ModelInfo> InferenceService::models() const {
+    return manager_.listModels();
+}
+
+
+bool InferenceService::health() const {
+    auto models_list = manager_.listModels();
+    return !models_list.empty();
 }

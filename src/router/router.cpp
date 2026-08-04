@@ -60,6 +60,4 @@ HttpResponse Router::infer(const HttpRequest& request) {
         response.message = std::format("Error while processing: {}", error_msg);
         return response;
     }
-    
-
 }

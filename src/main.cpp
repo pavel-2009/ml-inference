@@ -1,3 +1,4 @@
+#include "router/router.hpp"
 #include "async-loader/async-loader.hpp"
 #include "threadpool/task_queue.hpp"
 #include "threadpool/threadpool.hpp"

@@ -2,6 +2,7 @@
 #include "inference_service/inference_service.hpp"
 
 #include <iostream>
+#include <format>
 
 
 Router::Router(InferenceService& inference)

@@ -2,6 +2,8 @@
 
 #include "base_model.hpp"
 
+#include <optional>
+
 class AverageModel : public BaseModel
 {
 public:

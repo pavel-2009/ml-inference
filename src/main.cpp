@@ -1,10 +1,11 @@
-#include "async-loader/async-loader.hpp"
+#include "router/router.hpp"
+#include "async_loader/async_loader.hpp"
 #include "threadpool/task_queue.hpp"
 #include "threadpool/threadpool.hpp"
 #include "model/model_factory.hpp"
 #include "model/model_manager.hpp"
 #include "model/model_info.hpp"
-#include "inference-service/inference-service.hpp"
+#include "inference_service/inference_service.hpp"
 
 #include <nlohmann/json.hpp>
 #include <filesystem>
@@ -33,44 +34,6 @@ void printModelInfo(const ModelInfo& info, const std::string& prefix = "  ") {
 // Вспомогательная функция для тестирования inference
 void testInference(InferenceService& service, const std::string& model_id, const std::vector<int>& input, 
                    const std::string& test_name = "") {
-    if (!test_name.empty()) {
-        std::cout << "\n🧪 Тест: " << test_name << "\n";
-    }
-    
-    InferenceRequest request;
-    request.model_id = model_id;
-    request.input = input;
-    
-    std::cout << "  📤 Отправка запроса для модели '" << model_id << "'\n";
-    std::cout << "  📥 Входные данные: [";
-    for (size_t i = 0; i < input.size(); ++i) {
-        if (i > 0) std::cout << ", ";
-        std::cout << input[i];
-    }
-    std::cout << "]\n";
-    
-    InferenceResponse response = service.infer(request);
-    
-    if (response.success) {
-        std::cout << "  ✅ Успешно!\n";
-        if (!response.result_int.empty()) {
-            std::cout << "  📤 Результат (int): [";
-            for (size_t i = 0; i < response.result_int.size(); ++i) {
-                if (i > 0) std::cout << ", ";
-                std::cout << response.result_int[i];
-            }
-            std::cout << "]\n";
-        } else {
-            std::cout << "  📤 Результат (double): " << response.result_double << '\n';
-        }
-    } else {
-        std::cout << "  ❌ Ошибка: " << response.error << '\n';
-    }
-}
-
-// Специализированная функция для тестирования моделей с double результатом
-void testInferenceDouble(InferenceService& service, const std::string& model_id, 
-                         const std::vector<int>& input, const std::string& test_name = "") {
     if (!test_name.empty()) {
         std::cout << "\n🧪 Тест: " << test_name << "\n";
     }
@@ -234,10 +197,10 @@ int main() {
                 testInference(inference_service, model_id, negative_input,
                              "Сортировка массива с отрицательными числами");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, negative_input,
+                testInference(inference_service, model_id, negative_input,
                                    "Сумма массива с отрицательными числами");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, negative_input,
+                testInference(inference_service, model_id, negative_input,
                                    "Среднее значение массива с отрицательными числами");
             }
             
@@ -246,10 +209,10 @@ int main() {
                 testInference(inference_service, model_id, empty_array,
                              "Пустой массив");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, empty_array,
+                testInference(inference_service, model_id, empty_array,
                                    "Сумма пустого массива");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, empty_array,
+                testInference(inference_service, model_id, empty_array,
                                    "Среднее значение пустого массива");
             }
             
@@ -258,10 +221,10 @@ int main() {
                 testInference(inference_service, model_id, single_element,
                              "Массив с одним элементом");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, single_element,
+                testInference(inference_service, model_id, single_element,
                                    "Сумма массива с одним элементом");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, single_element,
+                testInference(inference_service, model_id, single_element,
                                    "Среднее значение массива с одним элементом");
             }
             
@@ -270,10 +233,10 @@ int main() {
                 testInference(inference_service, model_id, all_zeros,
                              "Массив из нулей");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, all_zeros,
+                testInference(inference_service, model_id, all_zeros,
                                    "Сумма массива из нулей");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, all_zeros,
+                testInference(inference_service, model_id, all_zeros,
                                    "Среднее значение массива из нулей");
             }
             
@@ -286,10 +249,10 @@ int main() {
                 testInference(inference_service, model_id, large_array,
                              "Большой массив (100 элементов)");
             } else if (is_sum) {
-                testInferenceDouble(inference_service, model_id, large_array,
+                testInference(inference_service, model_id, large_array,
                                    "Сумма большого массива (100 элементов)");
             } else if (is_average) {
-                testInferenceDouble(inference_service, model_id, large_array,
+                testInference(inference_service, model_id, large_array,
                                    "Среднее значение большого массива (100 элементов)");
             }
             
@@ -329,6 +292,93 @@ int main() {
     
     std::cout << "\n=========================================\n";
     std::cout << "✅ Тестирование завершено!\n";
+    std::cout << "=========================================\n";
+    
+    // ============================================
+    // ТЕСТИРОВАНИЕ ROUTER
+    // ============================================
+    std::cout << "\n=========================================\n";
+    std::cout << "🧪 ТЕСТИРОВАНИЕ ROUTER\n";
+    std::cout << "=========================================\n\n";
+    
+    Router router(inference_service);
+    
+    // Тест 1: Health endpoint
+    std::cout << "🔍 Тест: Health endpoint\n";
+    HttpRequest health_request;
+    health_request.endpoint = Endpoint::Health;
+    health_request.method = Method::Get;
+    HttpResponse health_response = router.route(health_request);
+    std::cout << "  Status: " << health_response.status << ", Message: " << health_response.message << '\n';
+    if (health_response.status == 200) {
+        std::cout << "  ✅ Health check passed\n";
+    } else {
+        std::cout << "  ❌ Health check failed\n";
+    }
+    
+    // Тест 2: Models endpoint
+    std::cout << "\n🔍 Тест: Models endpoint\n";
+    HttpRequest models_request;
+    models_request.endpoint = Endpoint::Models;
+    models_request.method = Method::Get;
+    HttpResponse models_response = router.route(models_request);
+    std::cout << "  Status: " << models_response.status << ", Message: " << models_response.message << '\n';
+    if (models_response.status == 200) {
+        std::cout << "  ✅ Models list retrieved successfully\n";
+    } else {
+        std::cout << "  ❌ Failed to retrieve models list\n";
+    }
+    
+    // Тест 3: Infer endpoint с валидным запросом
+    std::cout << "\n🔍 Тест: Infer endpoint (валидный запрос)\n";
+    HttpRequest infer_request;
+    infer_request.endpoint = Endpoint::Infer;
+    infer_request.method = Method::Post;
+    InferenceRequest inf_req;
+    inf_req.model_id = "sum";
+    inf_req.input = {1, 2, 3, 4, 5};
+    infer_request.inference_request = inf_req;
+    HttpResponse infer_response = router.route(infer_request);
+    std::cout << "  Status: " << infer_response.status << ", Message: " << infer_response.message << '\n';
+    if (infer_response.status == 200 && infer_response.inference_response) {
+        std::cout << "  ✅ Infer request succeeded\n";
+    } else {
+        std::cout << "  ❌ Infer request failed\n";
+    }
+    
+    // Тест 4: Infer endpoint с невалидным model_id
+    std::cout << "\n🔍 Тест: Infer endpoint (невалидный model_id)\n";
+    HttpRequest invalid_infer_request;
+    invalid_infer_request.endpoint = Endpoint::Infer;
+    invalid_infer_request.method = Method::Post;
+    InferenceRequest invalid_inf_req;
+    invalid_inf_req.model_id = "non_existent";
+    invalid_inf_req.input = {1, 2, 3};
+    invalid_infer_request.inference_request = invalid_inf_req;
+    HttpResponse invalid_infer_response = router.route(invalid_infer_request);
+    std::cout << "  Status: " << invalid_infer_response.status << ", Message: " << invalid_infer_response.message << '\n';
+    if (invalid_infer_response.status != 200) {
+        std::cout << "  ✅ Error correctly handled\n";
+    } else {
+        std::cout << "  ❌ Error not detected\n";
+    }
+    
+    // Тест 5: Infer endpoint без inference_request
+    std::cout << "\n🔍 Тест: Infer endpoint (отсутствие inference_request)\n";
+    HttpRequest missing_request;
+    missing_request.endpoint = Endpoint::Infer;
+    missing_request.method = Method::Post;
+    missing_request.inference_request = std::nullopt;
+    HttpResponse missing_response = router.route(missing_request);
+    std::cout << "  Status: " << missing_response.status << ", Message: " << missing_response.message << '\n';
+    if (missing_response.status == 400) {
+        std::cout << "  ✅ Missing request correctly handled\n";
+    } else {
+        std::cout << "  ❌ Missing request not detected\n";
+    }
+    
+    std::cout << "\n=========================================\n";
+    std::cout << "✅ Тестирование Router завершено!\n";
     std::cout << "=========================================\n";
     
     return 0;

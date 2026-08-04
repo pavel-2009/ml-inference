@@ -2,6 +2,9 @@
 
 #include "inference_request.hpp"
 #include "inference_response.hpp"
+#include "model_info.hpp"
+
+#include <optional>
 
 class IModel
 {
@@ -18,4 +21,6 @@ public:
     virtual InferenceResponse infer(
         const std::optional<InferenceRequest>& request
     ) = 0;
+
+    virtual const ModelInfo& config() const = 0;
 };

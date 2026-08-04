@@ -9,6 +9,6 @@ public:
     using BaseModel::BaseModel;
 
     InferenceResponse infer(
-        const InferenceRequest& request
+        const std::optional<InferenceRequest>& request
     ) override;
 };

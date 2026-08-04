@@ -16,6 +16,6 @@ public:
     virtual bool ready() const = 0;
 
     virtual InferenceResponse infer(
-        const InferenceRequest& request
+        const std::optional<InferenceRequest>& request
     ) = 0;
 };

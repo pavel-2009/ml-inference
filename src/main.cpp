@@ -68,44 +68,6 @@ void testInference(InferenceService& service, const std::string& model_id, const
     }
 }
 
-// Специализированная функция для тестирования моделей с double результатом
-void testInferenceDouble(InferenceService& service, const std::string& model_id, 
-                         const std::vector<int>& input, const std::string& test_name = "") {
-    if (!test_name.empty()) {
-        std::cout << "\n🧪 Тест: " << test_name << "\n";
-    }
-    
-    InferenceRequest request;
-    request.model_id = model_id;
-    request.input = input;
-    
-    std::cout << "  📤 Отправка запроса для модели '" << model_id << "'\n";
-    std::cout << "  📥 Входные данные: [";
-    for (size_t i = 0; i < input.size(); ++i) {
-        if (i > 0) std::cout << ", ";
-        std::cout << input[i];
-    }
-    std::cout << "]\n";
-    
-    InferenceResponse response = service.infer(request);
-    
-    if (response.success) {
-        std::cout << "  ✅ Успешно!\n";
-        if (!response.result_int.empty()) {
-            std::cout << "  📤 Результат (int): [";
-            for (size_t i = 0; i < response.result_int.size(); ++i) {
-                if (i > 0) std::cout << ", ";
-                std::cout << response.result_int[i];
-            }
-            std::cout << "]\n";
-        } else {
-            std::cout << "  📤 Результат (double): " << response.result_double << '\n';
-        }
-    } else {
-        std::cout << "  ❌ Ошибка: " << response.error << '\n';
-    }
-}
-
 int main() {
     std::cout << "=========================================\n";
     std::cout << "🚀 ТЕСТИРОВАНИЕ ASYNCLOADER\n";

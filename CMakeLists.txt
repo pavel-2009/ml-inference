@@ -33,12 +33,12 @@ add_executable(ml_inference ${PROJECT_SOURCES})
 # Include directories (ПОТОМ добавляем include директории)
 target_include_directories(ml_inference PRIVATE
     ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/include/async-loader
+    ${PROJECT_SOURCE_DIR}/include/async_loader
     ${PROJECT_SOURCE_DIR}/include/threadpool
     ${PROJECT_SOURCE_DIR}/include/model
     ${PROJECT_SOURCE_DIR}/include/inference-service
     ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/async-loader
+    ${PROJECT_SOURCE_DIR}/src/async_loader
     ${PROJECT_SOURCE_DIR}/src/threadpool
     ${PROJECT_SOURCE_DIR}/src/model
     ${PROJECT_SOURCE_DIR}/src/inference-service

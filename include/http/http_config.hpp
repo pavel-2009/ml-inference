@@ -2,6 +2,7 @@
 
 #include <string>
 #include <thread>
+#include <cstdint>
 
 
 class HttpConfig {
@@ -14,4 +15,9 @@ class HttpConfig {
         bool keep_alive = true;
 
         std::size_t max_body_size = 10 * 1024 * 1024;
+        
+        HttpConfig() = default;
+        
+        HttpConfig(const std::string& addr, uint16_t p, std::size_t thr = 0)
+            : address(addr), port(p), threads(thr > 0 ? thr : std::thread::hardware_concurrency()) {}
 };

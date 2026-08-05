@@ -7,3 +7,11 @@ CrowServer::CrowServer(
 ) : router(router), config(config) {
     registerRouters();
 }
+
+void CrowServer::start() {
+    app_.port(config.port).multithreaded().run();
+}
+
+void CrowServer::stop() {
+    app_.stop();
+}

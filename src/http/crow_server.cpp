@@ -1,16 +1,20 @@
 #include "http/crow_server.hpp"
 
 #include <iostream>
+#include <atomic>
+
+static std::atomic<bool> g_server_running{false};
 
 CrowServer::CrowServer(
     Router& router,
     const HttpConfig& config
-) : router_(router), config_(config) {
+) : router_(router)
+  , config_(config) {
     this->registerRouters();
 }
 
 void CrowServer::registerRouters() {
-    // Health endpoint
+    // Health endpoint - проверка работоспособности сервиса
     CROW_ROUTE(app_, "/health")
         .methods(crow::HTTPMethod::GET)
         ([this](const crow::request&) {
@@ -23,7 +27,7 @@ void CrowServer::registerRouters() {
             return crow::response(response.status, response.message);
         });
 
-    // Models endpoint
+    // Models endpoint - получение списка доступных моделей
     CROW_ROUTE(app_, "/models")
         .methods(crow::HTTPMethod::GET)
         ([this](const crow::request&) {
@@ -36,7 +40,7 @@ void CrowServer::registerRouters() {
             return crow::response(response.status, response.message);
         });
 
-    // Infer endpoint
+    // Infer endpoint - выполнение инференса модели
     CROW_ROUTE(app_, "/infer")
         .methods(crow::HTTPMethod::POST)
         ([this](const crow::request& req) {
@@ -78,8 +82,10 @@ void CrowServer::registerRouters() {
                 result["success"] = response.inference_response->success;
                 
                 if (!response.inference_response->result_int.empty()) {
-                    std::vector<int> result_vec(response.inference_response->result_int.begin(), 
-                                               response.inference_response->result_int.end());
+                    std::vector<int> result_vec(
+                        response.inference_response->result_int.begin(), 
+                        response.inference_response->result_int.end()
+                    );
                     result["result"] = result_vec;
                 } else {
                     result["result"] = response.inference_response->result_double;
@@ -97,9 +103,20 @@ void CrowServer::registerRouters() {
 }
 
 void CrowServer::start() {
-    app_.port(config_.port).multithreaded().run();
+    g_server_running = true;
+    server_future_ = std::async(std::launch::async, [this]() {
+        app_.port(config_.port).multithreaded().run();
+    });
 }
 
 void CrowServer::stop() {
+    g_server_running = false;
     app_.stop();
+    if (server_future_.valid()) {
+        server_future_.wait();
+    }
+}
+
+bool CrowServer::isRunning() const {
+    return g_server_running.load();
 }

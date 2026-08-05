@@ -5,7 +5,7 @@
 CrowServer::CrowServer(
     Router& router,
     const HttpConfig& config
-) : router(router), config(config) {
+) : router_(router), config_(config) {
     this->registerRouters();
 }
 
@@ -18,7 +18,7 @@ void CrowServer::registerRouters() {
             request.endpoint = Endpoint::Health;
             request.method = Method::Get;
             
-            HttpResponse response = router.route(request);
+            HttpResponse response = router_.route(request);
             
             return crow::response(response.status, response.message);
         });
@@ -31,7 +31,7 @@ void CrowServer::registerRouters() {
             request.endpoint = Endpoint::Models;
             request.method = Method::Get;
             
-            HttpResponse response = router.route(request);
+            HttpResponse response = router_.route(request);
             
             return crow::response(response.status, response.message);
         });
@@ -71,7 +71,7 @@ void CrowServer::registerRouters() {
                 return crow::response(response.status, response.message);
             }
             
-            HttpResponse response = router.route(request);
+            HttpResponse response = router_.route(request);
             
             if (response.inference_response) {
                 crow::json::wvalue result;
@@ -97,7 +97,7 @@ void CrowServer::registerRouters() {
 }
 
 void CrowServer::start() {
-    app_.port(config.port).multithreaded().run();
+    app_.port(config_.port).multithreaded().run();
 }
 
 void CrowServer::stop() {

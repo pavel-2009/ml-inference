@@ -12,6 +12,17 @@ message(STATUS "Building ML-Inference ${PROJECT_VERSION}")
 # Find dependencies
 find_package(nlohmann_json REQUIRED)
 
+# Fetch Crow
+include(FetchContent)
+
+FetchContent_Declare(
+    crow
+    GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
+    GIT_TAG v1.2.1
+)
+
+FetchContent_MakeAvailable(crow)
+
 # Source files
 set(PROJECT_SOURCES
     src/main.cpp
@@ -27,16 +38,17 @@ set(PROJECT_SOURCES
     src/router/router.cpp
 )
 
-# Create executable (СНАЧАЛА создаём таргет)
+# Create executable
 add_executable(ml_inference ${PROJECT_SOURCES})
 
-# Include directories (ПОТОМ добавляем include директории)
+# Include directories
 target_include_directories(ml_inference PRIVATE
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/async_loader
     ${PROJECT_SOURCE_DIR}/include/threadpool
     ${PROJECT_SOURCE_DIR}/include/model
     ${PROJECT_SOURCE_DIR}/include/inference-service
+    ${PROJECT_SOURCE_DIR}/include/http
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/async_loader
     ${PROJECT_SOURCE_DIR}/src/threadpool
@@ -44,9 +56,10 @@ target_include_directories(ml_inference PRIVATE
     ${PROJECT_SOURCE_DIR}/src/inference-service
 )
 
-# Link libraries
+# Link libraries (исправлено: все линковки в одном месте)
 target_link_libraries(ml_inference
     nlohmann_json::nlohmann_json
+    Crow::Crow  # Добавляем Crow здесь
 )
 
 # Compiler options

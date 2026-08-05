@@ -1,13 +1,24 @@
 # ML Inference Project
 
-A simple ML inference framework using C++ and GitHub Actions for CI/CD.
+Проект системы ML-инференса на C++ с HTTP API, асинхронной загрузкой моделей и многопоточной обработкой запросов.
 
-## Build Requirements
+## 📋 Описание
 
-- C++ compiler (tested with GCC)
+Данный проект представляет собой фреймворк для выполнения ML-инференса с поддержкой:
+- **HTTP сервер** на основе библиотеки Crow для обработки веб-запросов
+- **Router** для маршрутизации запросов к соответствующим обработчикам
+- **Асинхронная загрузка моделей** через ThreadPool
+- **Менеджер моделей** для управления жизненным циклом моделей
+- **Inference Service** для выполнения инференса загруженных моделей
+
+## 🔧 Требования для сборки
+
+- Компилятор C++ с поддержкой C++20 (GCC 10+ или Clang 11+)
 - CMake 3.10+
+- Библиотека nlohmann_json
+- Библиотека Crow (загружается автоматически через FetchContent)
 
-## Build Instructions
+## 📦 Сборка проекта
 
 ```bash
 mkdir build
@@ -16,29 +27,166 @@ cmake ..
 cmake --build .
 ```
 
-## Testing
+## 🧪 Тестирование
 
-Running tests:
+Запуск тестов:
 ```bash
 cd build
 ctest
 ```
 
-## Project Structure
+Или прямой запуск исполняемого файла:
+```bash
+./build/ml_inference
+```
 
-- `src/` - Source code
-- `include/` - Header files
-- `models/` - Model configuration files
+Тестирование включает:
+- Загрузку моделей из JSON-файлов
+- Тестирование InferenceService для всех типов моделей
+- Тестирование Router (health, models, infer endpoints)
+- Тестирование HTTP сервера (запуск, обработка запросов, остановка)
 
-## Models
+## 📁 Структура проекта
 
-- **Sort Model**: Sorts an array of integers
-- **Average Model**: Calculates the average of an array of integers
-- **Sum Model**: Calculates the sum of an array of integers
+```
+/workspace
+├── CMakeLists.txt          # Конфигурация CMake
+├── README.md               # Документация
+├── include/                # Заголовочные файлы
+│   ├── http/
+│   │   ├── crow_server.hpp     # HTTP сервер на Crow
+│   │   └── http_config.hpp     # Конфигурация HTTP
+│   ├── router/
+│   │   ├── router.hpp          # Маршрутизатор запросов
+│   │   ├── http_request.hpp    # Структура HTTP запроса
+│   │   └── http_response.hpp   # Структура HTTP ответа
+│   ├── model/              # Модели и менеджеры
+│   ├── threadpool/         # Пул потоков
+│   ├── async_loader/       # Асинхронная загрузка
+│   └── inference_service/  # Сервис инференса
+├── src/                    # Исходный код
+│   ├── main.cpp            # Точка входа и тесты
+│   └── ...                 # Реализации компонентов
+└── models/                 # JSON конфиги моделей
+    ├── average.json
+    ├── sort.json
+    └── sum.json
+```
 
-## ML Framework
+## 🌐 HTTP API
 
-This project implements a simple ML model framework with:
-- Model factory for loading and managing models
-- Thread pool for parallel processing
-- Serializable models for persistence
+Сервер предоставляет следующие endpoint'ы:
+
+### GET /health
+Проверка работоспособности сервиса.
+
+**Ответ:**
+- `200 OK` - сервис доступен
+- `503 Service Unavailable` - сервис недоступен
+
+### GET /models
+Получение списка доступных моделей.
+
+**Ответ:**
+- `200 OK` - JSON массив с информацией о моделях
+- `500 Internal Server Error` - ошибка при получении списка
+
+### POST /infer
+Выполнение инференса модели.
+
+**Тело запроса (JSON):**
+```json
+{
+    "model_id": "sum",
+    "input": [1, 2, 3, 4, 5]
+}
+```
+
+**Ответ:**
+- `200 OK` - успешное выполнение
+- `400 Bad Request` - некорректный запрос
+- `404 Not Found` - модель не найдена
+
+## 🎯 Доступные модели
+
+| Модель | Описание | Тип результата |
+|--------|----------|----------------|
+| **Sort** | Сортировка массива целых чисел | int[] |
+| **Average** | Вычисление среднего значения массива | double |
+| **Sum** | Вычисление суммы элементов массива | int |
+
+## 🏗️ Архитектура
+
+### Компоненты
+
+1. **CrowServer** - HTTP сервер на базе библиотеки Crow
+   - Приём HTTP запросов
+   - Формирование HttpRequest объектов
+   - Передача в Router для маршрутизации
+   - Возврат HttpResponse клиенту
+
+2. **Router** - Маршрутизатор запросов
+   - Распределение запросов по endpoint'ам
+   - Вызов соответствующих обработчиков
+   - Обработка ошибок
+
+3. **HttpRequest/HttpResponse** - Структуры данных
+   - Endpoint (Health, Models, Infer)
+   - Method (GET, POST)
+   - Опциональные данные инференса
+
+4. **InferenceService** - Сервис выполнения инференса
+   - Валидация запросов
+   - Делегирование выполнения моделям
+   - Формирование ответов
+
+5. **AsyncLoader** - Асинхронная загрузка моделей
+   - Чтение JSON конфигов
+   - Создание экземпляров моделей
+   - Регистрация в ModelManager
+
+6. **ThreadPool** - Пул потоков
+   - Управление рабочими потоками
+   - Очередь задач
+   - Распределение нагрузки
+
+## 🚀 Быстрый старт
+
+1. Соберите проект:
+```bash
+mkdir build && cd build && cmake .. && cmake --build .
+```
+
+2. Запустите тесты:
+```bash
+./ml_inference
+```
+
+3. (Опционально) Запустите HTTP сервер для ручного тестирования:
+```bash
+# Добавьте код запуска сервера в main.cpp или создайте отдельный файл
+CrowServer server(router, HttpConfig("0.0.0.0", 8080));
+server.start();
+// Ожидайте запросов...
+server.stop();
+```
+
+4. Проверьте API:
+```bash
+curl http://localhost:8080/health
+curl http://localhost:8080/models
+curl -X POST http://localhost:8080/infer \
+  -H "Content-Type: application/json" \
+  -d '{"model_id": "sum", "input": [1, 2, 3]}'
+```
+
+## 📝 CI/CD
+
+Проект использует GitHub Actions для непрерывной интеграции:
+- Автоматическая сборка при push в репозиторий
+- Запуск тестов
+- Проверка стиля кода
+
+## 📄 Лицензия
+
+[Укажите лицензию вашего проекта]

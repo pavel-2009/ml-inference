@@ -36,6 +36,7 @@ set(PROJECT_SOURCES
     src/async_loader/async_loader.cpp
     src/inference_service/inference_service.cpp
     src/router/router.cpp
+    src/http/crow_server.cpp
 )
 
 # Create executable

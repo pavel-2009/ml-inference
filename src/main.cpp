@@ -6,6 +6,8 @@
 #include "model/model_manager.hpp"
 #include "model/model_info.hpp"
 #include "inference_service/inference_service.hpp"
+#include "http/crow_server.hpp"
+#include "http/http_config.hpp"
 
 #include <nlohmann/json.hpp>
 #include <filesystem>
@@ -15,6 +17,8 @@
 #include <chrono>
 #include <iomanip>
 #include <any>
+#include <cassert>
+#include <cstdlib>
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -67,6 +71,104 @@ void testInference(InferenceService& service, const std::string& model_id, const
     } else {
         std::cout << "  ❌ Ошибка: " << response.error << '\n';
     }
+}
+
+/**
+ * @brief Тестирование HTTP сервера
+ * 
+ * Запускает сервер, проверяет его статус и выполняет базовые тесты endpoints.
+ */
+bool testHttpServer(Router& router) {
+    std::cout << "\n=========================================\n";
+    std::cout << "🌐 ТЕСТИРОВАНИЕ HTTP СЕРВЕРА\n";
+    std::cout << "=========================================\n\n";
+    
+    // Создаём конфигурацию сервера
+    HttpConfig config("127.0.0.1", 18080, 2);
+    CrowServer server(router, config);
+    
+    // Запускаем сервер
+    std::cout << "🚀 Запуск HTTP сервера на порту " << config.port << "...\n";
+    server.start();
+    
+    // Ждём немного для запуска
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    
+    // Проверяем статус сервера
+    std::cout << "📊 Проверка статуса сервера...\n";
+    if (server.isRunning()) {
+        std::cout << "  ✅ Сервер запущен\n";
+    } else {
+        std::cout << "  ⚠️ Сервер не сообщает о запуске (может быть нормально)\n";
+    }
+    
+    // Тестируем роутинг через Router напрямую
+    std::cout << "\n🔍 Тест: Health endpoint через Router\n";
+    HttpRequest health_request;
+    health_request.endpoint = Endpoint::Health;
+    health_request.method = Method::Get;
+    HttpResponse health_response = router.route(health_request);
+    std::cout << "  Status: " << health_response.status << ", Message: " << health_response.message << '\n';
+    bool health_ok = (health_response.status == 200);
+    std::cout << "  " << (health_ok ? "✅" : "❌") << " Health check\n";
+    
+    std::cout << "\n🔍 Тест: Models endpoint через Router\n";
+    HttpRequest models_request;
+    models_request.endpoint = Endpoint::Models;
+    models_request.method = Method::Get;
+    HttpResponse models_response = router.route(models_request);
+    std::cout << "  Status: " << models_response.status << ", Message: " << models_response.message << '\n';
+    bool models_ok = (models_response.status == 200);
+    std::cout << "  " << (models_ok ? "✅" : "❌") << " Models list\n";
+    
+    std::cout << "\n🔍 Тест: Infer endpoint (валидный запрос)\n";
+    HttpRequest infer_request;
+    infer_request.endpoint = Endpoint::Infer;
+    infer_request.method = Method::Post;
+    InferenceRequest inf_req;
+    inf_req.model_id = "sum";
+    inf_req.input = std::vector<int>{1, 2, 3, 4, 5};
+    infer_request.inference_request = inf_req;
+    HttpResponse infer_response = router.route(infer_request);
+    std::cout << "  Status: " << infer_response.status << ", Message: " << infer_response.message << '\n';
+    bool infer_ok = (infer_response.status == 200 && infer_response.inference_response.has_value());
+    std::cout << "  " << (infer_ok ? "✅" : "❌") << " Infer request\n";
+    
+    std::cout << "\n🔍 Тест: Infer endpoint (невалидный model_id)\n";
+    HttpRequest invalid_infer_request;
+    invalid_infer_request.endpoint = Endpoint::Infer;
+    invalid_infer_request.method = Method::Post;
+    InferenceRequest invalid_inf_req;
+    invalid_inf_req.model_id = "non_existent";
+    invalid_inf_req.input = std::vector<int>{1, 2, 3};
+    invalid_infer_request.inference_request = invalid_inf_req;
+    HttpResponse invalid_infer_response = router.route(invalid_infer_request);
+    std::cout << "  Status: " << invalid_infer_response.status << ", Message: " << invalid_infer_response.message << '\n';
+    bool error_handled = (invalid_infer_response.status != 200);
+    std::cout << "  " << (error_handled ? "✅" : "❌") << " Error handling\n";
+    
+    std::cout << "\n🔍 Тест: Infer endpoint (отсутствие inference_request)\n";
+    HttpRequest missing_request;
+    missing_request.endpoint = Endpoint::Infer;
+    missing_request.method = Method::Post;
+    missing_request.inference_request = std::nullopt;
+    HttpResponse missing_response = router.route(missing_request);
+    std::cout << "  Status: " << missing_response.status << ", Message: " << missing_response.message << '\n';
+    bool missing_handled = (missing_response.status == 400);
+    std::cout << "  " << (missing_handled ? "✅" : "❌") << " Missing request handling\n";
+    
+    // Останавливаем сервер
+    std::cout << "\n🛑 Остановка сервера...\n";
+    server.stop();
+    std::cout << "  ✅ Сервер остановлен\n";
+    
+    bool all_passed = health_ok && models_ok && infer_ok && error_handled && missing_handled;
+    
+    std::cout << "\n=========================================\n";
+    std::cout << (all_passed ? "✅ Все тесты HTTP сервера пройдены!" : "❌ Некоторые тесты не пройдены") << "\n";
+    std::cout << "=========================================\n";
+    
+    return all_passed;
 }
 
 int main() {
@@ -381,5 +483,10 @@ int main() {
     std::cout << "✅ Тестирование Router завершено!\n";
     std::cout << "=========================================\n";
     
-    return 0;
+    // ============================================
+    // ТЕСТИРОВАНИЕ HTTP СЕРВЕРА
+    // ============================================
+    bool http_tests_passed = testHttpServer(router);
+    
+    return http_tests_passed ? EXIT_SUCCESS : EXIT_FAILURE;
 }

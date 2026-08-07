@@ -74,7 +74,7 @@ void CrowServer::registerRouters() {
                 http_request.inference_request = inference_req;
                 
                 // Выполняем инференс
-                auto response = router.route(http_request);
+                HttpResponse response = router.route(http_request);
                 
                 // Формируем ответ
                 nlohmann::json result;

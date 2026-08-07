@@ -61,17 +61,7 @@ void CrowServer::registerRouters() {
                 }
                 
                 // Получаем input как массив int
-                auto arr = body["input"];
-                
-                // Проверяем, что это массив через t()
-                if (arr.t() != crow::json::type::List) {
-                    return crow::response(400, "input must be an array");
-                }
-                
-                std::vector<int> input;
-                for (int i = 0; i < (int)arr.size(); i++) {
-                    input.push_back(arr[i].i());
-                }
+                auto input = body["input"];
                 
                 // Создаем запрос
                 InferenceRequest inference_req;

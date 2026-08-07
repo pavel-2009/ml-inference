@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Configuration:\n"
               << "  Models directory: " << models_dir << "\n"
               << "  HTTP port: " << http_port << "\n"
-              << "  Thread pool size: " << thread_pool_size << "\n"
+              << "  Thread pool size: " << thread_pool_size << "\n";
     
     // ============================================================
     // 2. Проверка директории с моделями

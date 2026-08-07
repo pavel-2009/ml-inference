@@ -11,7 +11,6 @@ CrowServer::CrowServer(
 }
 
 void CrowServer::registerRouters() {
-    // Health endpoint
     CROW_ROUTE(app_, "/health")
         .methods("GET"_method)([this](const crow::request& req) {
             HttpRequest http_request;
@@ -26,7 +25,6 @@ void CrowServer::registerRouters() {
             return crow_res;
         });
     
-    // Models endpoint
     CROW_ROUTE(app_, "/models")
         .methods("GET"_method)([this](const crow::request& req) {
             HttpRequest http_request;
@@ -42,9 +40,6 @@ void CrowServer::registerRouters() {
             return crow_res;
         });
     
-    // Infer endpoint - упрощенная версия
-    // Infer endpoint
-    // Infer endpoint
     CROW_ROUTE(app_, "/infer")
         .methods("POST"_method)([this](const crow::request& req) {
             try {
@@ -54,16 +49,15 @@ void CrowServer::registerRouters() {
                     return crow::response(400, "Invalid JSON");
                 }
                 
-                // Получаем model_id
                 std::string model_id = body["model_id"].s();
                 if (model_id.empty()) {
                     return crow::response(400, "model_id is required");
                 }
                 
-                // Получаем input как массив int
-                auto input = body["input"];
+                // Проверить, не срабатывает ли ошибка 
+                // с проверкой и передачей типов
+                auto input = body["input"]; 
                 
-                // Создаем запрос
                 InferenceRequest inference_req;
                 inference_req.model_id = model_id;
                 inference_req.input = input;
@@ -73,10 +67,8 @@ void CrowServer::registerRouters() {
                 http_request.method = Method::Post;
                 http_request.inference_request = inference_req;
                 
-                // Выполняем инференс
                 HttpResponse response = router.route(http_request);
                 
-                // Формируем ответ
                 nlohmann::json result;
                 result["success"] = response.status == 200;
                 
@@ -106,7 +98,6 @@ void CrowServer::registerRouters() {
             }
         });
     
-    // Root endpoint
     CROW_ROUTE(app_, "/")
         .methods("GET"_method)([]() {
             crow::response res;

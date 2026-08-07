@@ -43,9 +43,6 @@ void printStatus(const std::string& component, const std::string& status) {
 int main(int argc, char* argv[]) {
     printBanner();
     
-    // ============================================================
-    // 1. Парсинг аргументов командной строки
-    // ============================================================
     std::string models_dir = "models";
     uint16_t http_port = 8080;
     size_t thread_pool_size = std::thread::hardware_concurrency();
@@ -75,9 +72,6 @@ int main(int argc, char* argv[]) {
               << "  HTTP port: " << http_port << "\n"
               << "  Thread pool size: " << thread_pool_size << "\n";
     
-    // ============================================================
-    // 2. Проверка директории с моделями
-    // ============================================================
     fs::path models_path = fs::current_path() / models_dir;
     if (!fs::exists(models_path)) {
         std::cerr << "ERROR: Models directory does not exist: " << models_path << "\n";
@@ -85,7 +79,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Проверяем наличие JSON файлов
     bool has_models = false;
     for (const auto& entry : fs::directory_iterator(models_path)) {
         if (fs::is_regular_file(entry.path()) && entry.path().extension() == ".json") {
@@ -99,37 +92,27 @@ int main(int argc, char* argv[]) {
         std::cerr << "The server will start with no models loaded.\n\n";
     }
     
-    // ============================================================
-    // 3. Инициализация компонентов
-    // ============================================================
     printStatus("INIT", "Creating components...");
     
-    // 3.1 Thread Pool и Task Queue
     TaskQueue task_queue;
     ThreadPool thread_pool(thread_pool_size, task_queue);
     printStatus("THREAD POOL", "Started with " + std::to_string(thread_pool_size) + " threads");
     
-    // 3.2 Model Factory
     ModelFactory model_factory;
     printStatus("MODEL FACTORY", "Initialized");
     
-    // 3.3 Model Manager
     ModelManager model_manager;
     printStatus("MODEL MANAGER", "Initialized");
     
-    // 3.4 Inference Service
     InferenceService inference_service(model_manager);
     printStatus("INFERENCE SERVICE", "Initialized");
     
-    // 3.5 Async Loader
     AsyncLoader async_loader(thread_pool, model_factory, model_manager, models_path);
     printStatus("ASYNC LOADER", "Initialized for: " + models_path.string());
     
-    // 3.6 Router
     Router router(inference_service);
     printStatus("ROUTER", "Initialized");
     
-    // 3.7 HTTP Server
     std::unique_ptr<CrowServer> http_server;
 
     HttpConfig http_config;
@@ -142,15 +125,12 @@ int main(int argc, char* argv[]) {
     http_server = std::make_unique<CrowServer>(router, http_config);
     printStatus("HTTP SERVER", "Configured on port " + std::to_string(http_port));
     
-    // ============================================================
-    // 4. Загрузка моделей
-    // ============================================================
     printStatus("LOADING", "Starting asynchronous model loading...");
     std::cout << "----------------------------------------\n";
     
     try {
         async_loader.loadAll();
-        async_loader.wait(); // Ждем завершения загрузки всех моделей
+        async_loader.wait(); 
         std::cout << "----------------------------------------\n";
         printStatus("LOADING", "All models loaded successfully");
     } catch (const std::exception& e) {
@@ -158,7 +138,6 @@ int main(int argc, char* argv[]) {
         std::cerr << "Server will continue with partially loaded models.\n";
     }
     
-    // Выводим информацию о загруженных моделях
     auto loaded_models = model_manager.listModels();
     std::cout << "\nLoaded models: " << loaded_models.size() << "\n";
     for (const auto& model : loaded_models) {
@@ -166,9 +145,6 @@ int main(int argc, char* argv[]) {
                   << model.name << " v" << model.version << "\n";
     }
     
-    // ============================================================
-    // 5. Проверка работоспособности
-    // ============================================================
     bool healthy = inference_service.health();
     if (healthy) {
         printStatus("HEALTH", "Service is healthy");
@@ -176,15 +152,9 @@ int main(int argc, char* argv[]) {
         printStatus("HEALTH", "Service is unhealthy (no models loaded)");
     }
     
-    // ============================================================
-    // 6. Обработка сигналов для graceful shutdown
-    // ============================================================
     std::signal(SIGINT, signalHandler);
     std::signal(SIGTERM, signalHandler);
     
-    // ============================================================
-    // 7. Запуск HTTP сервера
-    // ============================================================
     printStatus("SERVER", "Starting HTTP server on port " + std::to_string(http_port));
     std::cout << "\n" << std::string(50, '=') << "\n";
     std::cout << "🚀 ML Inference Server is running!\n";
@@ -198,7 +168,6 @@ int main(int argc, char* argv[]) {
     std::cout << "        -d '{\"model_id\": \"sum\", \"input\": [1,2,3,4,5]}'\n";
     std::cout << std::string(50, '=') << "\n\n";
     
-    // Запускаем сервер в отдельном потоке, чтобы можно было обрабатывать сигналы
     std::thread server_thread([&http_server]() {
         http_server->start();
     });
@@ -208,16 +177,12 @@ int main(int argc, char* argv[]) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     
-    // Graceful shutdown
     printStatus("SERVER", "Shutting down...");
     http_server->stop();
     if (server_thread.joinable()) {
         server_thread.join();
     }
     
-    // ============================================================
-    // 8. Cleanup
-    // ============================================================
     printStatus("SERVER", "Shutdown complete");
     std::cout << "Goodbye!\n";
     

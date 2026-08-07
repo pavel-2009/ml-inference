@@ -49,7 +49,6 @@ int main(int argc, char* argv[]) {
     std::string models_dir = "models";
     uint16_t http_port = 8080;
     size_t thread_pool_size = std::thread::hardware_concurrency();
-    bool enable_http = true;
     
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -59,8 +58,6 @@ int main(int argc, char* argv[]) {
             http_port = static_cast<uint16_t>(std::stoi(argv[++i]));
         } else if (arg == "--threads" && i + 1 < argc) {
             thread_pool_size = static_cast<size_t>(std::stoi(argv[++i]));
-        } else if (arg == "--no-http") {
-            enable_http = false;
         } else if (arg == "--help" || arg == "-h") {
             std::cout << "Usage: " << argv[0] << " [OPTIONS]\n"
                       << "Options:\n"
@@ -77,7 +74,6 @@ int main(int argc, char* argv[]) {
               << "  Models directory: " << models_dir << "\n"
               << "  HTTP port: " << http_port << "\n"
               << "  Thread pool size: " << thread_pool_size << "\n"
-              << "  HTTP server: " << (enable_http ? "enabled" : "disabled") << "\n\n";
     
     // ============================================================
     // 2. Проверка директории с моделями
@@ -135,16 +131,16 @@ int main(int argc, char* argv[]) {
     
     // 3.7 HTTP Server
     std::unique_ptr<CrowServer> http_server;
-    if (enable_http) {
-        HttpConfig http_config;
-        http_config.port = http_port;
-        http_config.threads = thread_pool_size;
-        http_config.keep_alive = true;
-        http_config.max_body_size = 10 * 1024 * 1024; // 10MB
-        
-        http_server = std::make_unique<CrowServer>(router, http_config);
-        printStatus("HTTP SERVER", "Configured on port " + std::to_string(http_port));
-    }
+
+    HttpConfig http_config;
+
+    http_config.port = http_port;
+    http_config.threads = thread_pool_size;
+    http_config.keep_alive = true;
+    http_config.max_body_size = 10 * 1024 * 1024; // 10MB
+    
+    http_server = std::make_unique<CrowServer>(router, http_config);
+    printStatus("HTTP SERVER", "Configured on port " + std::to_string(http_port));
     
     // ============================================================
     // 4. Загрузка моделей
@@ -189,48 +185,34 @@ int main(int argc, char* argv[]) {
     // ============================================================
     // 7. Запуск HTTP сервера
     // ============================================================
-    if (enable_http && http_server) {
-        printStatus("SERVER", "Starting HTTP server on port " + std::to_string(http_port));
-        std::cout << "\n" << std::string(50, '=') << "\n";
-        std::cout << "🚀 ML Inference Server is running!\n";
-        std::cout << "📡 API endpoints:\n";
-        std::cout << "   GET  /health  - Health check\n";
-        std::cout << "   GET  /models  - List loaded models\n";
-        std::cout << "   POST /infer   - Run inference\n";
-        std::cout << "\nExample inference request:\n";
-        std::cout << "   curl -X POST http://localhost:" << http_port << "/infer \\\n";
-        std::cout << "        -H \"Content-Type: application/json\" \\\n";
-        std::cout << "        -d '{\"model_id\": \"sum\", \"input\": [1,2,3,4,5]}'\n";
-        std::cout << std::string(50, '=') << "\n\n";
-        
-        // Запускаем сервер в отдельном потоке, чтобы можно было обрабатывать сигналы
-        std::thread server_thread([&http_server]() {
-            http_server->start();
-        });
-        
-        // Ждем сигнала остановки
-        while (running) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-        
-        // Graceful shutdown
-        printStatus("SERVER", "Shutting down...");
-        http_server->stop();
-        if (server_thread.joinable()) {
-            server_thread.join();
-        }
-        
-    } else {
-        // Режим без HTTP сервера (только загрузка моделей и тесты)
-        std::cout << "\n" << std::string(50, '=') << "\n";
-        std::cout << "✅ Inference server initialized (HTTP disabled)\n";
-        std::cout << "Press Ctrl+C to exit\n";
-        std::cout << std::string(50, '=') << "\n\n";
-        
-        // Ждем сигнала
-        while (running) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
+    printStatus("SERVER", "Starting HTTP server on port " + std::to_string(http_port));
+    std::cout << "\n" << std::string(50, '=') << "\n";
+    std::cout << "🚀 ML Inference Server is running!\n";
+    std::cout << "📡 API endpoints:\n";
+    std::cout << "   GET  /health  - Health check\n";
+    std::cout << "   GET  /models  - List loaded models\n";
+    std::cout << "   POST /infer   - Run inference\n";
+    std::cout << "\nExample inference request:\n";
+    std::cout << "   curl -X POST http://localhost:" << http_port << "/infer \\\n";
+    std::cout << "        -H \"Content-Type: application/json\" \\\n";
+    std::cout << "        -d '{\"model_id\": \"sum\", \"input\": [1,2,3,4,5]}'\n";
+    std::cout << std::string(50, '=') << "\n\n";
+    
+    // Запускаем сервер в отдельном потоке, чтобы можно было обрабатывать сигналы
+    std::thread server_thread([&http_server]() {
+        http_server->start();
+    });
+    
+    // Ждем сигнала остановки
+    while (running) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    
+    // Graceful shutdown
+    printStatus("SERVER", "Shutting down...");
+    http_server->stop();
+    if (server_thread.joinable()) {
+        server_thread.join();
     }
     
     // ============================================================

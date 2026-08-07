@@ -227,34 +227,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Press Ctrl+C to exit\n";
         std::cout << std::string(50, '=') << "\n\n";
         
-        // Демонстрация инференса
-        if (!loaded_models.empty()) {
-            std::cout << "Running test inference on loaded models:\n";
-            for (const auto& model_info : loaded_models) {
-                InferenceRequest req;
-                req.model_id = model_info.id;
-                req.input = std::vector<int>{1, 2, 3, 4, 5};
-                
-                auto response = inference_service.infer(req);
-                if (response.success) {
-                    std::cout << "  ✅ " << model_info.id << ": ";
-                    if (!response.result_int.empty()) {
-                        std::cout << "[";
-                        for (size_t i = 0; i < response.result_int.size(); ++i) {
-                            if (i > 0) std::cout << ", ";
-                            std::cout << response.result_int[i];
-                        }
-                        std::cout << "]";
-                    } else {
-                        std::cout << response.result_double;
-                    }
-                    std::cout << "\n";
-                } else {
-                    std::cout << "  ❌ " << model_info.id << ": " << response.error << "\n";
-                }
-            }
-        }
-        
         // Ждем сигнала
         while (running) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));

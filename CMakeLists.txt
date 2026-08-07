@@ -25,7 +25,7 @@ FetchContent_MakeAvailable(crow)
 
 # Source files
 set(PROJECT_SOURCES
-    src/main.cpp
+    src/inference_server.cpp  # Новый главный файл
     src/model/models/average_model.cpp
     src/model/model_factory.cpp
     src/model/model_manager.cpp
@@ -36,13 +36,14 @@ set(PROJECT_SOURCES
     src/async_loader/async_loader.cpp
     src/inference_service/inference_service.cpp
     src/router/router.cpp
+    src/http/crow_server.cpp
 )
 
 # Create executable
-add_executable(ml_inference ${PROJECT_SOURCES})
+add_executable(ml_inference_server ${PROJECT_SOURCES})  # Новое имя
 
 # Include directories
-target_include_directories(ml_inference PRIVATE
+target_include_directories(ml_inference_server PRIVATE
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/async_loader
     ${PROJECT_SOURCE_DIR}/include/threadpool
@@ -56,22 +57,24 @@ target_include_directories(ml_inference PRIVATE
     ${PROJECT_SOURCE_DIR}/src/inference-service
 )
 
-# Link libraries (исправлено: все линковки в одном месте)
-target_link_libraries(ml_inference
+# Link libraries
+target_link_libraries(ml_inference_server
     nlohmann_json::nlohmann_json
-    Crow::Crow  # Добавляем Crow здесь
+    Crow::Crow
 )
 
 # Compiler options
 if(MSVC)
-    target_compile_options(ml_inference PRIVATE /W4 /std:c++20)
+    target_compile_options(ml_inference_server PRIVATE /W4 /std:c++20)
 else()
-    target_compile_options(ml_inference PRIVATE -Wall -Wextra -Wpedantic -std=c++20)
-    target_compile_features(ml_inference PRIVATE cxx_std_20)
+    target_compile_options(ml_inference_server PRIVATE -Wall -Wextra -Wpedantic -std=c++20)
+    target_compile_features(ml_inference_server PRIVATE cxx_std_20)
 endif()
 
-# Testing
-enable_testing()
-add_test(NAME ml_inference_test COMMAND ml_inference)
+# Testing - можно оставить старый main.cpp как тест
+add_executable(ml_inference_test src/main.cpp ${PROJECT_SOURCES})
+# ... остальные настройки для теста
 
 message(STATUS "Project configured successfully")
+message(STATUS "Main server: ml_inference_server")
+message(STATUS "Test binary: ml_inference_test")

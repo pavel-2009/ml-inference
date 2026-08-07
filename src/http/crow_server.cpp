@@ -1,5 +1,7 @@
-#include "crow_server.hpp"
+#include "http/crow_server.hpp"
 #include <nlohmann/json.hpp>
+#include <iostream>
+#include <string>
 
 CrowServer::CrowServer(
     Router& router,
@@ -9,81 +11,136 @@ CrowServer::CrowServer(
 }
 
 void CrowServer::registerRouters() {
-    CROW_ROUTE(app_, "/<string>")
-        .methods("GET"_method, "POST"_method)([this](const crow::request& req, std::string endpoint) {
+    // Health endpoint
+    CROW_ROUTE(app_, "/health")
+        .methods("GET"_method)([this](const crow::request& req) {
             HttpRequest http_request;
-            
-            if (endpoint == "health") {
-                http_request.endpoint = Endpoint::Health;
-            } else if (endpoint == "models") {
-                http_request.endpoint = Endpoint::Models;
-            } else if (endpoint == "infer") {
-                http_request.endpoint = Endpoint::Infer;
-            } else {
-                crow::response res(404, "Not found");
-                return res;
-            }
-            
-            if (req.method == "GET"_method) {
-                http_request.method = Method::Get;
-            } else if (req.method == "POST"_method) {
-                http_request.method = Method::Post;
-            } else {
-                crow::response res(405, "Method not allowed");
-                return res;
-            }
-            
-            if (http_request.endpoint == Endpoint::Infer && 
-                http_request.method == Method::Post) {
-                try {
-                    auto body_json = crow::json::load(req.body);
-                    if (body_json) {
-                        InferenceRequest inference_req;
-                        inference_req.model_id = body_json["model_id"].s();
-                        
-                        inference_req.input = req.body;
-                        
-                        http_request.inference_request = inference_req;
-                    }
-                } catch (const std::exception& e) {
-                    crow::response res(400, "Invalid JSON");
-                    return res;
-                }
-            }
+            http_request.endpoint = Endpoint::Health;
+            http_request.method = Method::Get;
             
             auto response = router.route(http_request);
             
             crow::response crow_res;
             crow_res.code = response.status;
+            crow_res.body = response.message;
+            return crow_res;
+        });
+    
+    // Models endpoint
+    CROW_ROUTE(app_, "/models")
+        .methods("GET"_method)([this](const crow::request& req) {
+            HttpRequest http_request;
+            http_request.endpoint = Endpoint::Models;
+            http_request.method = Method::Get;
             
-            if (response.inference_response.has_value()) {
-                nlohmann::json json_response;
-                const auto& infer_resp = response.inference_response.value();
-                json_response["success"] = infer_resp.success;
+            auto response = router.route(http_request);
+            
+            crow::response crow_res;
+            crow_res.code = response.status;
+            crow_res.body = response.message;
+            crow_res.set_header("Content-Type", "application/json");
+            return crow_res;
+        });
+    
+    // Infer endpoint - упрощенная версия
+    // Infer endpoint
+    // Infer endpoint
+    CROW_ROUTE(app_, "/infer")
+        .methods("POST"_method)([this](const crow::request& req) {
+            try {
+                auto body = crow::json::load(req.body);
                 
-                if (infer_resp.success) {
-                    if (!infer_resp.result_int.empty()) {
-                        json_response["result"] = infer_resp.result_int;
-                    } else {
-                        json_response["result"] = infer_resp.result_double;
-                    }
-                } else {
-                    json_response["error"] = infer_resp.error;
+                if (!body) {
+                    return crow::response(400, "Invalid JSON");
                 }
                 
-                crow_res.body = json_response.dump();
-            } else {
-                crow_res.body = response.message;
+                // Получаем model_id
+                std::string model_id = body["model_id"].s();
+                if (model_id.empty()) {
+                    return crow::response(400, "model_id is required");
+                }
+                
+                // Получаем input как массив int
+                auto arr = body["input"];
+                
+                // Проверяем, что это массив через t()
+                if (arr.t() != crow::json::type::List) {
+                    return crow::response(400, "input must be an array");
+                }
+                
+                std::vector<int> input;
+                for (int i = 0; i < (int)arr.size(); i++) {
+                    input.push_back(arr[i].i());
+                }
+                
+                // Создаем запрос
+                InferenceRequest inference_req;
+                inference_req.model_id = model_id;
+                inference_req.input = input;
+                
+                HttpRequest http_request;
+                http_request.endpoint = Endpoint::Infer;
+                http_request.method = Method::Post;
+                http_request.inference_request = inference_req;
+                
+                // Выполняем инференс
+                auto response = router.route(http_request);
+                
+                // Формируем ответ
+                nlohmann::json result;
+                result["success"] = response.status == 200;
+                
+                if (response.inference_response.has_value()) {
+                    auto& infer = response.inference_response.value();
+                    if (infer.success) {
+                        if (!infer.result_int.empty()) {
+                            result["result"] = infer.result_int;
+                        } else {
+                            result["result"] = infer.result_double;
+                        }
+                    } else {
+                        result["error"] = infer.error;
+                    }
+                } else {
+                    result["message"] = response.message;
+                }
+                
+                crow::response crow_res;
+                crow_res.code = response.status;
+                crow_res.body = result.dump();
+                crow_res.set_header("Content-Type", "application/json");
+                return crow_res;
+                
+            } catch (const std::exception& e) {
+                return crow::response(400, std::string("Error: ") + e.what());
             }
-            
-            return crow_res;
+        });
+    
+    // Root endpoint
+    CROW_ROUTE(app_, "/")
+        .methods("GET"_method)([]() {
+            crow::response res;
+            res.code = 200;
+            res.body = R"({
+                "service": "ML Inference Server",
+                "version": "1.0.0",
+                "endpoints": {
+                    "GET /health": "Health check",
+                    "GET /models": "List models",
+                    "POST /infer": "Run inference"
+                }
+            })";
+            res.set_header("Content-Type", "application/json");
+            return res;
         });
 }
 
 void CrowServer::start() {
+    std::cout << "Starting server on port " << config.port << "\n";
     app_.port(config.port).multithreaded().run();
 }
 
 void CrowServer::stop() {
+    std::cout << "Stopping server...\n";
     app_.stop();
 }

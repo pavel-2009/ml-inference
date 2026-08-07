@@ -25,3 +25,18 @@ void signalHandler(int signal) {
     std::cout << "\nReceived signal " << signal << ", shutting down gracefully...\n";
     running = false;
 }
+
+void printBanner() {
+    std::cout << R"(
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║   ML Inference Server v1.0.0                             ║
+║   C++20 High-Performance Inference Engine                ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+)";
+}
+
+void printStatus(const std::string& component, const std::string& status) {
+    std::cout << "[ " << component << " ] " << status << std::endl;
+}
